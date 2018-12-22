@@ -11,15 +11,14 @@ module Lib (
 import           Data.Aeson         (FromJSON, ToJSON)
 import           Data.Proxy         (Proxy (Proxy))
 import           Data.Text          (Text)
-import           Data.Time          (UTCTime)
 import           GHC.Generics       (Generic)
 import           Lib.App            (App, appToHandler)
 import           Lib.Effects.Logger (MonadLogger, log)
-import           Lib.Env            (AppEnv (AppEnv))
+import           Lib.Env            (AppEnv)
 import           Network.Wai        (Application)
 import           Prelude            hiding (log)
-import           Servant            ((:>), Get, JSON, Server, ServerT,
-                                     hoistServer, serve)
+import           Servant            ((:>), Get, JSON, ServerT, hoistServer,
+                                     serve)
 
 data Post = Post {
   title :: Text
@@ -44,6 +43,5 @@ serverT = getPosts
 api :: Proxy API
 api = Proxy
 
-app :: Application
-app = serve api $ hoistServer api (appToHandler env) serverT
-  where env = AppEnv "suh duh"
+app :: AppEnv -> Application
+app env = serve api $ hoistServer api (appToHandler env) serverT

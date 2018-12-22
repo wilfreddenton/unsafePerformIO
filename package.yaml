@@ -19,11 +19,22 @@ extra-source-files:
 # common to point users to the README.md file.
 description:         Please see the README on GitHub at <https://github.com/githubuser/haskell-starter-pack#readme>
 
+ghc-options:
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wno-unused-do-bind
+- -Wno-missing-signatures
+- -Wredundant-constraints
+- -Wall
+- -Werror
+
 dependencies:
 - base >= 4.7 && < 5
 - aeson
 - katip
+- lens
 - mtl
+- optparse-applicative
 - servant
 - servant-server
 - text
