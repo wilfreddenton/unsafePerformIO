@@ -1,14 +1,39 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Lib.Env where
 
 import           Control.Lens (makeClassy)
+import           Katip        (ColorStrategy (ColorIfTerminal), LogContexts,
+                               LogEnv, Namespace, Severity (DebugS),
+                               Verbosity (V2), defaultScribeSettings,
+                               initLogEnv, mkHandleScribe, registerScribe)
+import           System.IO    (stdout)
 
 data ServerEnv = ServerEnv { _serverPort :: Int }
 makeClassy ''ServerEnv
 
-data AppEnv = AppEnv { _appEnvServer :: ServerEnv }
+data LoggerEnv = LoggerEnv {
+  _loggerLogEnv    :: LogEnv
+, _loggerContext   :: LogContexts
+, _loggerNamespace :: Namespace
+}
+makeClassy ''LoggerEnv
+
+newLoggerEnv :: IO LoggerEnv
+newLoggerEnv = do
+  handleScribe <- mkHandleScribe ColorIfTerminal stdout DebugS V2
+  logEnv <- registerScribe "stdout" handleScribe defaultScribeSettings =<< initLogEnv "MyApp" "development"
+  pure $ LoggerEnv logEnv mempty "app"
+
+data AppEnv = AppEnv {
+  _appServerEnv :: ServerEnv
+, _appLoggerEnv :: LoggerEnv
+}
 makeClassy ''AppEnv
 
 instance HasServerEnv AppEnv where
-  serverEnv = appEnvServer . serverEnv
+  serverEnv = appServerEnv . serverEnv
+
+instance HasLoggerEnv AppEnv where
+  loggerEnv = appLoggerEnv . loggerEnv

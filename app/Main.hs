@@ -4,10 +4,11 @@ module Main where
 
 import           Cli                      (opts)
 import           Control.Exception        (bracket)
-import           Control.Lens             (view)
+import           Control.Lens             ((^.))
 import           Data.Text.IO             as T
 import           Lib                      (app)
-import           Lib.Env                  (AppEnv (AppEnv), serverPort)
+import           Lib.Env                  (AppEnv (AppEnv), newLoggerEnv,
+                                           serverPort)
 import           Network.Wai.Handler.Warp (run)
 import           Options.Applicative      (execParser)
 
@@ -17,6 +18,7 @@ main = (\serverEnv -> bracket (makeAppEnv serverEnv) stopApp runApp) =<< execPar
   where
     makeAppEnv serverEnv = do
       T.putStrLn "starting up"
-      pure $ AppEnv serverEnv
+      loggerEnv <- newLoggerEnv
+      pure $ AppEnv serverEnv loggerEnv
     stopApp _ = T.putStrLn $ "shutting down"
-    runApp env = run (view serverPort env) $ app env
+    runApp env = run (env^.serverPort) $ app env
