@@ -3,16 +3,14 @@
 module Lib.App where
 
 import           Control.Lens           ((^.))
-import           Control.Monad.Except   (ExceptT, MonadError, runExceptT,
-                                         throwError)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Control.Monad.Reader   (MonadReader, ReaderT, runReaderT)
 import           Katip                  (Katip, KatipContext, KatipContextT,
                                          runKatipContextT)
 import           Lib.Effects.Logger     (MonadLogger, log, logKatip)
 import           Lib.Env                (AppEnv, loggerContext, loggerLogEnv,
                                          loggerNamespace)
 import           Lib.Error              (AppError, toHttpError)
+import           Protolude
 import           Servant                (Handler)
 
 newtype App a = App {

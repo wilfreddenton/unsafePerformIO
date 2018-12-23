@@ -22,22 +22,23 @@ description:         Please see the README on GitHub at <https://github.com/gith
 ghc-options:
 - -Wincomplete-record-updates
 - -Wincomplete-uni-patterns
-- -Wno-unused-do-bind
-- -Wno-missing-signatures
 - -Wredundant-constraints
 - -Wall
 - -Werror
+
+default-extensions:
+- NoImplicitPrelude
+- OverloadedStrings
 
 dependencies:
 - base >= 4.7 && < 5
 - aeson
 - katip
 - lens
-- mtl
 - optparse-applicative
+- protolude
 - servant
 - servant-server
-- text
 - time
 - wai
 - warp

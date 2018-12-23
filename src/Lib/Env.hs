@@ -1,5 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Lib.Env where
 
@@ -8,7 +7,7 @@ import           Katip        (ColorStrategy (ColorIfTerminal), LogContexts,
                                LogEnv, Namespace, Severity (DebugS),
                                Verbosity (V2), defaultScribeSettings,
                                initLogEnv, mkHandleScribe, registerScribe)
-import           System.IO    (stdout)
+import           Protolude
 
 data ServerEnv = ServerEnv { _serverPort :: Int }
 makeClassy ''ServerEnv

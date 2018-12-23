@@ -3,16 +3,18 @@
 module Lib.Effects.Logger where
 
 import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Data.Text              (Text)
-import           Data.Text.IO           as T
 import           Katip                  (Katip, KatipContext, Severity (InfoS),
                                          logStr, logTM)
+import           Protolude
 
 class Monad m => MonadLogger m where
   log :: Text -> m ()
 
+logPure :: Monad m => Text -> m ()
+logPure _ = pure ()
+
 logIO :: MonadIO m => Text -> m ()
-logIO = liftIO . T.putStrLn
+logIO = liftIO . putText
 
 logKatip :: (Katip m, KatipContext m) => Text -> m ()
 logKatip = $(logTM) InfoS . logStr

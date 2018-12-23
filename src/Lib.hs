@@ -1,8 +1,7 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE DataKinds      #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE TypeOperators  #-}
 
 module Lib (
   app
@@ -10,13 +9,12 @@ module Lib (
 
 import           Data.Aeson         (FromJSON, ToJSON)
 import           Data.Proxy         (Proxy (Proxy))
-import           Data.Text          (Text)
 import           GHC.Generics       (Generic)
 import           Lib.App            (App, appToHandler)
 import           Lib.Effects.Logger (MonadLogger, log)
 import           Lib.Env            (AppEnv)
 import           Network.Wai        (Application)
-import           Prelude            hiding (log)
+import           Protolude          hiding (log)
 import           Servant            ((:>), Get, JSON, ServerT, hoistServer,
                                      serve)
 

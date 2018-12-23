@@ -4,6 +4,7 @@ import           Lib.Env             (ServerEnv (ServerEnv))
 import           Options.Applicative (Parser, ParserInfo, auto, fullDesc,
                                       header, help, helper, info, long, metavar,
                                       option, progDesc, short, (<**>))
+import           Protolude           hiding (option)
 
 opts :: ParserInfo ServerEnv
 opts = info (command <**> helper) (
