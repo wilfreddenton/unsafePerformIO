@@ -1,7 +1,6 @@
 module Main where
 
 import           Cli                      (opts)
-import           Control.Exception        (bracket)
 import           Control.Lens             ((^.))
 import           Katip                    (closeScribes)
 import           Lib                      (app)

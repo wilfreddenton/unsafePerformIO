@@ -2,9 +2,8 @@
 
 module Lib.Effects.Logger where
 
-import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Katip                  (Katip, KatipContext, Severity (InfoS),
-                                         logStr, logTM)
+import           Katip     (Katip, KatipContext, Severity (InfoS), logStr,
+                            logTM)
 import           Protolude
 
 class Monad m => MonadLogger m where

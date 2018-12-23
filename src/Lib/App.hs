@@ -2,16 +2,15 @@
 
 module Lib.App where
 
-import           Control.Lens           ((^.))
-import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Katip                  (Katip, KatipContext, KatipContextT,
-                                         runKatipContextT)
-import           Lib.Effects.Logger     (MonadLogger, log, logKatip)
-import           Lib.Env                (AppEnv, loggerContext, loggerLogEnv,
-                                         loggerNamespace)
-import           Lib.Error              (AppError, toHttpError)
+import           Control.Lens       ((^.))
+import           Katip              (Katip, KatipContext, KatipContextT,
+                                     runKatipContextT)
+import           Lib.Effects.Logger (MonadLogger, log, logKatip)
+import           Lib.Env            (AppEnv, loggerContext, loggerLogEnv,
+                                     loggerNamespace)
+import           Lib.Error          (AppError, toHttpError)
 import           Protolude
-import           Servant                (Handler)
+import           Servant            (Handler)
 
 newtype App a = App {
   unApp :: KatipContextT (ReaderT AppEnv (ExceptT AppError IO)) a
