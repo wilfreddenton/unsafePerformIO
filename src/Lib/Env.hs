@@ -23,7 +23,7 @@ newLoggerEnv :: IO LoggerEnv
 newLoggerEnv = do
   handleScribe <- mkHandleScribe ColorIfTerminal stdout DebugS V2
   logEnv <- registerScribe "stdout" handleScribe defaultScribeSettings =<< initLogEnv "MyApp" "development"
-  pure $ LoggerEnv logEnv mempty "app"
+  pure $ LoggerEnv logEnv mempty mempty
 
 data AppEnv = AppEnv {
   _appServerEnv :: ServerEnv
