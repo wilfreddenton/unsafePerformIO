@@ -1,13 +1,22 @@
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Lib.Env where
 
-import           Control.Lens (makeClassy)
-import           Katip        (ColorStrategy (ColorIfTerminal), LogContexts,
-                               LogEnv, Namespace, Severity (DebugS),
-                               Verbosity (V2), defaultScribeSettings,
-                               initLogEnv, mkHandleScribe, registerScribe)
-import           Protolude
+import           Control.Lens            (makeClassy)
+import           Data.Aeson              (encode, object, (.=))
+import           Data.Text.Lazy.Builder  (fromText, toLazyText)
+import           Data.Text.Lazy.Encoding (decodeUtf8)
+import           Katip                   (ColorStrategy (ColorIfTerminal),
+                                          Item (..), ItemFormatter, LogContexts,
+                                          LogEnv, LogItem, Namespace,
+                                          Severity (DebugS), Verbosity (V3),
+                                          defaultScribeSettings, initLogEnv,
+                                          mkHandleScribeWithFormatter,
+                                          registerScribe, renderSeverity,
+                                          toObject, unLogStr)
+import           Katip.Format.Time       (formatAsLogTime)
+import           Protolude               hiding (decodeUtf8)
 
 data ServerEnv = ServerEnv { _serverPort :: Int }
 makeClassy ''ServerEnv
@@ -19,9 +28,18 @@ data LoggerEnv = LoggerEnv {
 }
 makeClassy ''LoggerEnv
 
+customJsonFormatter :: LogItem a => ItemFormatter a
+customJsonFormatter _color _verb Item{..} = fromText . toStrict . decodeUtf8 $ encode value
+  where
+    value = object [ "at" .= formatAsLogTime _itemTime
+                   , "sev" .= renderSeverity _itemSeverity
+                   , "data" .= toObject _itemPayload
+                   , "msg" .= toLazyText (unLogStr _itemMessage)
+                   ]
+
 newLoggerEnv :: IO LoggerEnv
 newLoggerEnv = do
-  handleScribe <- mkHandleScribe ColorIfTerminal stdout DebugS V2
+  handleScribe <- mkHandleScribeWithFormatter customJsonFormatter ColorIfTerminal stdout DebugS V3
   logEnv <- registerScribe "stdout" handleScribe defaultScribeSettings =<< initLogEnv "MyApp" "development"
   pure $ LoggerEnv logEnv mempty mempty
 

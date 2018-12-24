@@ -39,6 +39,8 @@ dependencies:
 - protolude
 - servant
 - servant-server
+- template-haskell
+- text
 - time
 - wai
 - warp
