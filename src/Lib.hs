@@ -7,7 +7,7 @@ module Lib (
   app
 ) where
 
-import           Data.Aeson         (FromJSON, ToJSON, object, (.=))
+import           Data.Aeson         (FromJSON, ToJSON, Value (Null))
 import           Data.Proxy         (Proxy (Proxy))
 import           GHC.Generics       (Generic)
 import           Lib.App            (App, appToHandler)
@@ -29,10 +29,14 @@ posts = [ Post "Hello, World!" "blah blah blah"
         , Post "Foo" "Bar"
         ]
 
+subHandler :: MonadLogger m => m ()
+subHandler = withContext Null $ info "should be null"
+
 getPosts :: MonadLogger m => m [Post]
 getPosts = do
   withNamespace "getPosts" $ do
-    withContext (object ["posts" .= posts]) $ info "request for posts"
+    withContext posts $ info "request for posts"
+    subHandler
     pure posts
 
 type API = "posts" :> Get '[JSON] [Post]
