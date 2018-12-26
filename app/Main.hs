@@ -14,11 +14,11 @@ import           Protolude
 
 
 main :: IO ()
-main = (\sEnv -> bracket (makeAppEnv sEnv) stopApp runApp) =<< execParser opts
+main = (\serverEnv' -> bracket (makeAppEnv serverEnv') stopApp runApp) =<< execParser opts
   where
-    makeAppEnv sEnv = do
+    makeAppEnv serverEnv' = do
       loggerEnv <- newLoggerEnv
-      pure $ AppEnv sEnv loggerEnv
+      pure $ AppEnv serverEnv' loggerEnv
     runApp env = do
       let port = env^.serverPort
       liftIO . runLoggerT env . withContextKatip (env^.serverEnv) $ infoKatip "Running"

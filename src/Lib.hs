@@ -33,11 +33,10 @@ subHandler :: MonadLogger m => m ()
 subHandler = withContext Null $ info "should be null"
 
 getPosts :: MonadLogger m => m [Post]
-getPosts = do
-  withNamespace "getPosts" $ do
-    withContext posts $ info "request for posts"
-    subHandler
-    pure posts
+getPosts = withNamespace "getPosts" $ do
+  withContext posts $ info "request for posts"
+  subHandler
+  pure posts
 
 type API = "posts" :> Get '[JSON] [Post]
 
