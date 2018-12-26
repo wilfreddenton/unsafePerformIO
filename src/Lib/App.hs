@@ -5,7 +5,9 @@ module Lib.App where
 import           Control.Lens       ((^.))
 import           Katip              (Katip, KatipContext, KatipContextT,
                                      runKatipContextT)
-import           Lib.Effects.Logger (MonadLogger, log, logKatip)
+import           Lib.Effects.Logger (MonadLogger (..), debugKatip, errorKatip,
+                                     infoKatip, warnKatip, withContextKatip,
+                                     withNamespaceKatip)
 import           Lib.Env            (AppEnv, HasLoggerEnv, loggerContext,
                                      loggerLogEnv, loggerNamespace)
 import           Lib.Error          (AppError, toHttpError)
@@ -17,7 +19,13 @@ newtype App a = App {
 } deriving (Monad, Functor, Applicative, MonadReader AppEnv, MonadError AppError, MonadIO, Katip, KatipContext)
 
 instance MonadLogger App where
-  log = logKatip
+  debug = debugKatip
+  error = errorKatip
+  info = infoKatip
+  warn = warnKatip
+
+  withNamespace = withNamespaceKatip
+  withContext = withContextKatip
 
 runLoggerT :: HasLoggerEnv e => e -> KatipContextT m a -> m a
 runLoggerT env = runKatipContextT (env^.loggerLogEnv) (env^.loggerContext) (env^.loggerNamespace)

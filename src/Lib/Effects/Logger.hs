@@ -2,18 +2,42 @@
 
 module Lib.Effects.Logger where
 
-import           Katip     (Katip, KatipContext, Severity (InfoS), logStr,
-                            logTM)
+import           Data.Aeson  (ToJSON, toJSON)
+import           Katip       (KatipContext, Namespace (Namespace),
+                              Severity (..), katipAddContext, katipAddNamespace,
+                              logStr, logTM)
+import           Lib.Orphans ()
 import           Protolude
 
 class Monad m => MonadLogger m where
-  log :: Text -> m ()
+  debug :: Text -> m ()
+  error :: Text -> m ()
+  info :: Text -> m ()
+  warn :: Text -> m ()
 
-logPure :: Monad m => Text -> m ()
-logPure _ = pure ()
+  withNamespace :: Text -> m a -> m a
+  withContext :: ToJSON b => b -> m a -> m a
 
-logIO :: MonadIO m => Text -> m ()
-logIO = liftIO . putText
+-- Implementations
 
-logKatip :: (Katip m, KatipContext m) => Text -> m ()
-logKatip = $(logTM) InfoS . logStr
+-- Katip
+logKatip :: (KatipContext m) => Severity -> Text -> m ()
+logKatip severity = $(logTM) severity . logStr
+
+debugKatip :: (KatipContext m) => Text -> m ()
+debugKatip = logKatip DebugS
+
+errorKatip :: (KatipContext m) => Text -> m ()
+errorKatip = logKatip ErrorS
+
+infoKatip :: (KatipContext m) => Text -> m ()
+infoKatip = logKatip InfoS
+
+warnKatip :: (KatipContext m) => Text -> m ()
+warnKatip = logKatip WarningS
+
+withNamespaceKatip :: (KatipContext m) => Text -> m a -> m a
+withNamespaceKatip namespace = katipAddNamespace (Namespace [namespace])
+
+withContextKatip :: (KatipContext m, ToJSON b) => b -> m a -> m a
+withContextKatip context = katipAddContext (toJSON context)

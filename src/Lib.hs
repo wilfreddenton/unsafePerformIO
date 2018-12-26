@@ -7,11 +7,12 @@ module Lib (
   app
 ) where
 
-import           Data.Aeson         (FromJSON, ToJSON)
+import           Data.Aeson         (FromJSON, ToJSON, object, (.=))
 import           Data.Proxy         (Proxy (Proxy))
 import           GHC.Generics       (Generic)
 import           Lib.App            (App, appToHandler)
-import           Lib.Effects.Logger (MonadLogger, log)
+import           Lib.Effects.Logger (MonadLogger, info, withContext,
+                                     withNamespace)
 import           Lib.Env            (AppEnv)
 import           Network.Wai        (Application)
 import           Protolude          hiding (log)
@@ -30,8 +31,9 @@ posts = [ Post "Hello, World!" "blah blah blah"
 
 getPosts :: MonadLogger m => m [Post]
 getPosts = do
-  log "request for posts"
-  pure posts
+  withNamespace "getPosts" $ do
+    withContext (object ["posts" .= posts]) $ info "request for posts"
+    pure posts
 
 type API = "posts" :> Get '[JSON] [Post]
 

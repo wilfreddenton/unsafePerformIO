@@ -4,7 +4,7 @@
 module Lib.Env where
 
 import           Control.Lens            (makeClassy)
-import           Data.Aeson              (encode, object, (.=))
+import           Data.Aeson              (ToJSON, encode, object, toJSON, (.=))
 import           Data.Text.Lazy.Builder  (fromText, toLazyText)
 import           Data.Text.Lazy.Encoding (decodeUtf8)
 import           Katip                   (ColorStrategy (ColorIfTerminal),
@@ -21,6 +21,9 @@ import           Protolude               hiding (decodeUtf8)
 data ServerEnv = ServerEnv { _serverPort :: Int }
 makeClassy ''ServerEnv
 
+instance ToJSON ServerEnv where
+  toJSON (ServerEnv port) = object [ "port" .= port ]
+
 data LoggerEnv = LoggerEnv {
   _loggerLogEnv    :: LogEnv
 , _loggerContext   :: LogContexts
@@ -35,12 +38,13 @@ customJsonFormatter _color _verb Item{..} = fromText . toStrict . decodeUtf8 $ e
                    , "sev" .= renderSeverity _itemSeverity
                    , "data" .= toObject _itemPayload
                    , "msg" .= toLazyText (unLogStr _itemMessage)
+                   , "ns" .= _itemNamespace
                    ]
 
 newLoggerEnv :: IO LoggerEnv
 newLoggerEnv = do
   handleScribe <- mkHandleScribeWithFormatter customJsonFormatter ColorIfTerminal stdout DebugS V3
-  logEnv <- registerScribe "stdout" handleScribe defaultScribeSettings =<< initLogEnv "MyApp" "development"
+  logEnv <- registerScribe "stdout" handleScribe defaultScribeSettings =<< initLogEnv "HSP" "development"
   pure $ LoggerEnv logEnv mempty mempty
 
 data AppEnv = AppEnv {
