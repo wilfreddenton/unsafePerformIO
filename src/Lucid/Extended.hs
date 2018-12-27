@@ -1,8 +1,10 @@
-module Lib.Template where
+module Lucid.Extended (
+  module Lucid
+, Template (..)
+) where
 
 import           Data.Aeson (ToJSON, toJSON)
-import           Lucid      (ToHtml, body_, charset_, doctypehtml_, head_,
-                             meta_, title_, toHtml, toHtmlRaw)
+import           Lucid
 import           Protolude
 
 data Template a = Template Text a

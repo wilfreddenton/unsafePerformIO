@@ -4,7 +4,7 @@
 module Lib.Server.Api where
 
 import           Lib.Effects.Post   (Post)
-import           Lib.Template       (Template)
+import           Lucid.Extended     (Template)
 import           Servant            ((:>), Get, JSON)
 import           Servant.HTML.Lucid (HTML)
 

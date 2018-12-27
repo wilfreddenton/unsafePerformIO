@@ -9,6 +9,7 @@ import           Katip       (KatipContext, Namespace (Namespace),
 import           Lib.Orphans ()
 import           Protolude
 
+-- Typeclass
 class Monad m => MonadLogger m where
   debug :: Text -> m ()
   error :: Text -> m ()
