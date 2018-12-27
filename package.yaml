@@ -41,7 +41,6 @@ dependencies:
 - servant
 - servant-lucid
 - servant-server
-- servant-static-th
 - template-haskell
 - text
 - time
