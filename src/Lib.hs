@@ -10,20 +10,34 @@ module Lib (
   app
 ) where
 
-import           Data.Aeson         (FromJSON, ToJSON, Value (Null))
+import           Data.Aeson         (FromJSON, ToJSON, Value (Null), toJSON)
 import           Data.Proxy         (Proxy (Proxy))
 import           GHC.Generics       (Generic)
 import           Lib.App            (App, appToHandler)
 import           Lib.Effects.Logger (MonadLogger, info, withContext,
                                      withNamespace)
 import           Lib.Env            (AppEnv)
-import           Lucid              (ToHtml, class_, div_, h1_, h3_, li_, p_,
-                                     toHtml, toHtmlRaw, ul_)
+import           Lucid              (ToHtml, body_, charset_, class_, div_,
+                                     doctypehtml_, h1_, h3_, head_, li_, meta_,
+                                     p_, title_, toHtml, toHtmlRaw, ul_)
 import           Network.Wai        (Application)
 import           Protolude          hiding (log)
 import           Servant            ((:>), Get, JSON, ServerT, hoistServer,
                                      serve)
 import           Servant.HTML.Lucid (HTML)
+
+data Template a = Template Text a
+
+instance ToJSON a => ToJSON (Template a) where
+  toJSON (Template _ a) = toJSON a
+
+instance ToHtml a => ToHtml (Template a) where
+  toHtmlRaw = toHtml
+  toHtml (Template title a) = doctypehtml_ $ do
+    head_ $ do
+      title_ $ toHtml title
+      meta_ [charset_ "utf-8"]
+    body_ $ toHtml a
 
 data Post = Post {
   title :: Text
@@ -51,13 +65,13 @@ posts = [ Post "Hello, World!" "blah blah blah"
 subHandler :: MonadLogger m => m ()
 subHandler = withContext Null $ info "should be null"
 
-getPosts :: MonadLogger m => m [Post]
+getPosts :: MonadLogger m => m (Template [Post])
 getPosts = withNamespace "getPosts" $ do
   withContext posts $ info "request for posts"
   subHandler
-  pure posts
+  pure $ Template "posts" posts
 
-type API = "posts" :> Get '[JSON, HTML] [Post]
+type API = "posts" :> Get '[JSON, HTML] (Template [Post])
 
 serverT :: ServerT API App
 serverT = getPosts
