@@ -18,4 +18,6 @@ instance ToHtml a => ToHtml (Template a) where
     head_ $ do
       title_ $ toHtml title
       meta_ [charset_ "utf-8"]
+      link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/style.css"]
+      script_ [src_ "/static/script.js"] ("" :: Text)
     body_ $ toHtml a

@@ -37,7 +37,6 @@ class Monad m => MonadPost m where
 -- Implementations
 
 -- Pure
-
 getPostsPure :: Monad m => m [Post]
 getPostsPure = pure $
   [ Post "Hello, World!" "blah blah blah"
