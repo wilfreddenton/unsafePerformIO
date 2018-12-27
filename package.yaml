@@ -35,9 +35,11 @@ dependencies:
 - aeson
 - katip
 - lens
+- lucid
 - optparse-applicative
 - protolude
 - servant
+- servant-lucid
 - servant-server
 - template-haskell
 - text
