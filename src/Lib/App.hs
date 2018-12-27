@@ -8,6 +8,7 @@ import           Katip              (Katip, KatipContext, KatipContextT,
 import           Lib.Effects.Logger (MonadLogger (..), debugKatip, errorKatip,
                                      infoKatip, warnKatip, withContextKatip,
                                      withNamespaceKatip)
+import           Lib.Effects.Post   (MonadPost, getPosts, getPostsPure)
 import           Lib.Env            (AppEnv, HasLoggerEnv, loggerContext,
                                      loggerLogEnv, loggerNamespace)
 import           Lib.Error          (AppError, toHttpError)
@@ -26,6 +27,9 @@ instance MonadLogger App where
 
   withNamespace = withNamespaceKatip
   withContext = withContextKatip
+
+instance MonadPost App where
+  getPosts = getPostsPure
 
 runLoggerT :: HasLoggerEnv e => e -> KatipContextT m a -> m a
 runLoggerT env = runKatipContextT (env^.loggerLogEnv) (env^.loggerContext) (env^.loggerNamespace)
