@@ -7,9 +7,11 @@
 module Lib.Effects.Post where
 
 import           Data.Aeson     (FromJSON, ToJSON)
+import           Lib.Orphans    ()
 import           Lucid.Extended (ToHtml, class_, div_, h1_, h3_, li_, p_,
                                  toHtml, toHtmlRaw, ul_)
 import           Protolude
+import qualified Text.MMark     as MMark
 
 -- Type
 data Post = Post {
@@ -21,7 +23,11 @@ instance ToHtml Post where
   toHtmlRaw = toHtml
   toHtml Post{..} = div_ [class_ "post"] $ do
     h1_ $ toHtml title
-    p_ $ toHtml body
+    markdown
+    where
+      markdown = toHtml $ case MMark.parse (show title) body of
+        Left _  -> p_ "invalid markdown" -- should never run
+        Right m -> MMark.render m
 
 instance ToHtml [Post] where
   toHtmlRaw = toHtml
@@ -39,6 +45,6 @@ class Monad m => MonadPost m where
 -- Pure
 getPostsPure :: Monad m => m [Post]
 getPostsPure = pure $
-  [ Post "Hello, World!" "blah blah blah"
+  [ Post "Hello, World!" "```haskell\nid :: a -> a\nid a = a\n```"
   , Post "Foo" "Bar"
   ]

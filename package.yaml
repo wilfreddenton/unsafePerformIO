@@ -36,6 +36,7 @@ dependencies:
 - katip
 - lens
 - lucid
+- mmark
 - optparse-applicative
 - protolude
 - servant
