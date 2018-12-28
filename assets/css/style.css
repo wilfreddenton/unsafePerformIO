@@ -1,0 +1,111 @@
+@font-face {
+  font-family: 'AG';
+  src: url('/static/fonts/AG-M.eot');
+  src: url('/static/fonts/AG-M.eot?#iefix') format('embedded-opentype'),
+       url('/static/fonts/AG-M.woff2') format('woff2'),
+       url('/static/fonts/AG-M.woff') format('woff');
+  font-weight:  700;
+  font-style:   normal;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: 'AG';
+  src: url('/static/fonts/AG-MI.eot');
+  src: url('/static/fonts/AG-MI.eot?#iefix') format('embedded-opentype'),
+       url('/static/fonts/AG-MI.woff2') format('woff2'),
+       url('/static/fonts/AG-MI.woff') format('woff');
+  font-weight:  700;
+  font-style:   italic;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: 'AG';
+  src: url('/static/fonts/AG-R.eot');
+  src: url('/static/fonts/AG-R.eot?#iefix') format('embedded-opentype'),
+       url('/static/fonts/AG-R.woff2') format('woff2'),
+       url('/static/fonts/AG-R.woff') format('woff');
+  font-weight:  400;
+  font-style:   normal;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: 'AG';
+  src: url('/static/fonts/AG-RI.eot');
+  src: url('/static/fonts/AG-RI.eot?#iefix') format('embedded-opentype'),
+       url('/static/fonts/AG-RI.woff2') format('woff2'),
+       url('/static/fonts/AG-RI.woff') format('woff');
+  font-weight:  400;
+  font-style:   italic;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: 'AT';
+  src: url('/static/fonts/AT-M.eot');
+  src: url('/static/fonts/AT-M.eot?#iefix') format('embedded-opentype'),
+       url('/static/fonts/AT-M.woff2') format('woff2'),
+       url('/static/fonts/AT-M.woff') format('woff');
+  font-weight:  700;
+  font-style:   normal;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: 'AT';
+  src: url('/static/fonts/AT-R.eot');
+  src: url('/static/fonts/AT-R.eot?#iefix') format('embedded-opentype'),
+       url('/static/fonts/AT-R.woff2') format('woff2'),
+       url('/static/fonts/AT-R.woff') format('woff');
+  font-weight:  400;
+  font-style:   normal;
+  font-stretch: normal;
+}
+
+html {
+  font-family: 'AG', sans-serif;
+  font-size: 14px;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.6rem;
+}
+
+h3, h4, h5, h6 {
+  font-size: 1rem;
+}
+
+code, pre {
+  font-family: 'AT', monospace;
+  font-size: 0.85rem;
+}
+
+code {
+  line-height: 1.4;
+}
+
+ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+nav {
+}
+
+#title {
+  font-style: italic
+}
+
+body > .container {
+  margin-top: 3rem;
+}
+
+.content {
+  margin-top: 5rem;
+}
