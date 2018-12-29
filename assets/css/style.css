@@ -94,7 +94,6 @@ h3, h4, h5, h6 {
 
 code, pre {
   font-family: 'AT', monospace;
-  font-size: 0.85rem;
 }
 
 code {
@@ -103,11 +102,14 @@ code {
 
 a {
   color: black;
+}
+
+a.button {
   text-decoration: none;
   padding: 0.25rem 0.5rem;
 }
 
-a:hover {
+a.button:hover {
   background-color: black;
   color: white;
 }
@@ -119,16 +121,22 @@ ul {
 
 ul li {
   margin: 1rem 0;
+  height: 1.3rem;
+}
+
+nav > ul {
+  margin-left: 0.15rem;
 }
 
 footer {
-  padding: 2rem 0;
+  padding: 3rem 0;
 }
 
 a.post-link {
   padding: 0;
   width: 100%;
   display: block;
+  text-decoration: none;
 }
 
 a.post-link:hover {
@@ -143,20 +151,15 @@ a.post-link:hover {
 
 body > .container:first-child {
   padding-top: 3rem;
-  padding-bottom: 10rem;
+  padding-bottom: 12rem;
 }
 
 .content {
-  margin-top: 7.05rem;
+  margin-top: 6.9rem;
 }
 
-#license {
-  padding: 0;
-  background-color: transparent;
-}
-
-#license img {
-  margin-top: 1rem;
+.content p {
+  line-height: 1.4;
 }
 
 #footer-container {
@@ -165,6 +168,12 @@ body > .container:first-child {
   right: 0;
   bottom: 0px;
   position: absolute;
+}
+
+#view-source {
+  float: right;
+  font-family: 'AT', monospace;
+  margin-top: -0.25rem;
 }
 
 span.inset {
@@ -186,12 +195,17 @@ li:hover span.inset {
 @media (max-width: 992px) {}
 
 @media (max-width: 768px) {
-  body > .container {
+  body > .container:first-child {
     padding-top: 1rem;
+    padding-bottom: 10rem;
   }
 
   .content {
     margin-top: 2rem;
+  }
+
+  footer {
+    padding: 2rem 0 ;
   }
 }
 

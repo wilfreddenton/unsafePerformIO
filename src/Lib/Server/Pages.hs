@@ -91,6 +91,29 @@ instance ToHtml PgpKey where
   toHtmlRaw = toHtml
   toHtml PgpKey {..}= pre_ $ toHtml pPgpKey
 
+data About = About {
+  aAbout    :: Text
+} deriving Generic
+
+instance ToJSON About where
+  toJSON = genericToJSON snakeNoPrefix
+
+instance ToHtml About where
+  toHtmlRaw = toHtml
+  toHtml About {..} = do
+    h3_ $ toHtml aAbout
+    p_ $ do
+      span_ "I've been working on private blockchain solutions for the financial services industry at "
+      a_ [href_ "https://symbiont.io", target_ "_blank"] "Symbiont.io"
+      span_ " since mid-2017. We hope to replace all the fax machines on Wall Street!"
+    p_ $ do
+      span_ "This blog is a collection of primarily technical posts. Writing the posts helps me further understand the topics and hopefully the posts themselves will be useful to the reader. It is named after the Haskell function "
+      code_ "unsafePerformIO"
+      span_ " which is a \"'back door' into the IO monad\". I think of each post as a call to this function. I put something out into the world unsure as to what might be thrown back at me."
+
+aboutHandler :: Monad m => m (Template About)
+aboutHandler = pure . Template "About" $ About "I'm a full-stack software engineer currently working in New York City."
+
 contactHandler :: Monad m => m (Template Contact)
 contactHandler = pure . Template "Contact" $ Contact myLocation email linkedIn facebookMessenger instagram
   where
