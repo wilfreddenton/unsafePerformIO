@@ -2,11 +2,11 @@
 
 module Lib.Effects.Logger where
 
-import           Data.Aeson  (ToJSON, toJSON)
-import           Katip       (KatipContext, Namespace (Namespace),
-                              Severity (..), katipAddContext, katipAddNamespace,
-                              logStr, logTM)
-import           Lib.Orphans ()
+import           Data.Aeson.Extended (ToJSON, toJSON)
+import           Katip               (KatipContext, Namespace (Namespace),
+                                      Severity (..), katipAddContext,
+                                      katipAddNamespace, logStr, logTM)
+import           Lib.Orphans         ()
 import           Protolude
 
 -- Typeclass

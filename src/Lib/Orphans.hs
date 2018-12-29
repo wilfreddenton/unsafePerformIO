@@ -2,9 +2,9 @@
 
 module Lib.Orphans where
 
-import           Data.Aeson (Value (..), object, (.=))
-import           Katip      (LogItem (..), PayloadSelection (AllKeys), ToObject,
-                             toObject)
+import           Data.Aeson.Extended (Value (..), object, (.=))
+import           Katip               (LogItem (..), PayloadSelection (AllKeys),
+                                      ToObject, toObject)
 import           Protolude
 
 instance ToObject Value where

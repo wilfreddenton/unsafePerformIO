@@ -1,8 +1,8 @@
 module Lib.Error where
 
-import           Data.Aeson (encode)
+import           Data.Aeson.Extended (encode)
 import           Protolude
-import           Servant    (ServantErr (ServantErr))
+import           Servant             (ServantErr (ServantErr))
 
 data AppError = AppError Text
 

@@ -4,7 +4,7 @@
 module Lib.Env where
 
 import           Control.Lens            (makeClassy)
-import           Data.Aeson              (ToJSON, encode, object, toJSON, (.=))
+import           Data.Aeson.Extended     (ToJSON, encode, object, toJSON, (.=))
 import           Data.Text.Lazy.Builder  (fromText, toLazyText)
 import           Data.Text.Lazy.Encoding (decodeUtf8)
 import           Katip                   (ColorStrategy (ColorIfTerminal),

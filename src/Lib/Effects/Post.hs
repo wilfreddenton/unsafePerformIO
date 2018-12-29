@@ -1,31 +1,41 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE RecordWildCards     #-}
 
 module Lib.Effects.Post where
 
-import           Data.Aeson     (FromJSON, ToJSON)
-import           Lib.Orphans    ()
-import           Lucid.Extended (ToHtml, class_, div_, h1_, h3_, li_, p_,
-                                 toHtml, toHtmlRaw, ul_)
+import           Data.Aeson.Extended (ToJSON, genericToJSON, snakeNoPrefix,
+                                      toJSON)
+import           Data.Time           (UTCTime (UTCTime), defaultTimeLocale,
+                                      formatTime, fromGregorian,
+                                      secondsToDiffTime)
+import           Lib.Orphans         ()
+import           Lucid.Extended      (ToHtml, class_, div_, h1_, h3_, href_,
+                                      li_, p_, span_, termWith, toHtml,
+                                      toHtmlRaw, ul_)
 import           Protolude
-import qualified Text.MMark     as MMark
+import qualified Text.MMark          as MMark
 
 -- Type
 data Post = Post {
-  title :: Text
-, body  :: Text
-} deriving (Eq, Show, Generic, ToJSON, FromJSON)
+  pTitle     :: Text
+, pCreatedAt :: UTCTime
+, pBody      :: Text
+} deriving (Eq, Show, Generic)
+
+instance ToJSON Post where
+  toJSON = genericToJSON snakeNoPrefix
 
 instance ToHtml Post where
   toHtmlRaw = toHtml
   toHtml Post{..} = div_ [class_ "post"] $ do
-    h1_ $ toHtml title
+    h1_ $ toHtml pTitle
     markdown
     where
-      markdown = toHtml $ case MMark.parse (show title) body of
+      markdown = toHtml $ case MMark.parse (show pTitle) pBody of
         Left _  -> p_ "invalid markdown" -- should never run
         Right m -> MMark.render m
 
@@ -33,8 +43,12 @@ instance ToHtml [Post] where
   toHtmlRaw = toHtml
   toHtml = ul_ . foldMap asListItem
     where
-      asListItem post = li_ $ do
-        h3_ . toHtml $ "_" <> title post
+      asListItem Post {..} = li_ $ do
+        termWith "a" [class_ "post-link", href_ ""] $ do
+          _ <- h3_ $ do
+            span_ [class_ "inset"] "_"
+            toHtml $ pTitle
+          span_ [class_ "post-list-date"] . toHtml . formatTime defaultTimeLocale "%b %d, %_Y" $ pCreatedAt
 
 -- Typeclass
 class Monad m => MonadPost m where
@@ -45,7 +59,8 @@ class Monad m => MonadPost m where
 -- Pure
 getPostsPure :: Monad m => m [Post]
 getPostsPure = pure $
-  [ Post "Hello, World!" "Here is a snippet of code bro.\n```haskell\ninstance ToHtml Post where\n  toHtmlRaw = toHtml\n  toHtml Post{..} = div_ [class_ \"post\"] $ do\n    h1_ $ toHtml title\n    markdown\n    where\n      markdown = toHtml $ case MMark.parse (show title) body of\n        Left _  -> p_ \"invalid markdown\" -- should never run\n        Right m -> MMark.render m\n```\nDid you enjoy this code?"
-  , Post "Foo" "Let's go to the *Bar* ok?"
-  , Post "Welcome to the Blog" "*unsafePerformIO*"
+  [
+    Post "Haskell is Frustratingly Good" (UTCTime (fromGregorian 2017 2 12) (secondsToDiffTime 0)) "*unsafePerformIO*"
+  , Post "Foo" (UTCTime (fromGregorian 2008 8 22) (secondsToDiffTime 0)) "Let's go to the *Bar* ok?"
+  , Post "Hello, World!" (UTCTime (fromGregorian 1994 1 31) (secondsToDiffTime 0)) "Here is a snippet of code bro.\n```haskell\ninstance ToHtml Post where\n  toHtmlRaw = toHtml\n  toHtml Post{..} = div_ [class_ \"post\"] $ do\n    h1_ $ toHtml title\n    markdown\n    where\n      markdown = toHtml $ case MMark.parse (show title) body of\n        Left _  -> p_ \"invalid markdown\" -- should never run\n        Right m -> MMark.render m\n```\nDid you enjoy this code?"
   ]

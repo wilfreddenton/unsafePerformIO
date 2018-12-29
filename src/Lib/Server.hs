@@ -8,6 +8,7 @@ import           Data.Proxy       (Proxy (Proxy))
 import           Lib.App          (App, appToHandler)
 import           Lib.Env          (AppEnv)
 import           Lib.Server.Api   (API)
+import           Lib.Server.Pages (contactHandler)
 import           Lib.Server.Posts (getPostsHandler)
 import           Network.Wai      (Application)
 import           Protolude        hiding (log)
@@ -16,6 +17,7 @@ import           Servant
 serverT :: ServerT API App
 serverT =
   getPostsHandler :<|>
+  contactHandler :<|>
   serveDirectoryWebApp "assets"
 
 api :: Proxy API

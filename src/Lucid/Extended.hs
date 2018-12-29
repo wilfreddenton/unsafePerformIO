@@ -1,9 +1,13 @@
 module Lucid.Extended (
   module Lucid
 , Template (..)
+, container_
+, row_
+, colMd4_
+, colMd8_
 ) where
 
-import           Data.Aeson (ToJSON, toJSON)
+import           Data.Aeson.Extended (ToJSON, toJSON)
 import           Lucid
 import           Protolude
 
@@ -38,10 +42,10 @@ instance ToHtml a => ToHtml (Template a) where
       script_ "hljs.initHighlightingOnLoad()"
     body_ . container_ . row_ $ do
       colMd4_ . nav_ $ do
-        h1_ [id_ "title"] "unsafePerformIO"
+        h1_ [id_ "title"] $ a_ [href_ "/"] "unsafePerformIO"
         p_ "[ Author: Wilfred Denton ]"
         ul_ $ do
           li_ $ a_ [href_ "https://github.com/wilfreddenton/resume/blob/master/wilfred_denton_resume.pdf", target_ "_blank"] "Resumé"
-          li_ $ a_ [href_ ""] "Contact"
+          li_ $ a_ [href_ "/contact"] "Contact"
           li_ $ a_ [href_ ""] "PGP Key"
       colMd8_ . div_ [class_ "content"] $ toHtml a
