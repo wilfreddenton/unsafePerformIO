@@ -108,7 +108,9 @@ instance ToHtml About where
       span_ " since mid-2017. We hope to replace all the fax machines on Wall Street!"
     p_ $ do
       span_ "This blog is a collection of primarily technical posts. Writing the posts helps me further understand the topics and hopefully the posts themselves will be useful to the reader. It is named after the Haskell function "
-      code_ "unsafePerformIO"
+      a_ [ href_ "http://hackage.haskell.org/package/base-4.12.0.0/docs/System-IO-Unsafe.html#v:unsafePerformIO"
+         , target_ "_blank"] $
+        code_ "unsafePerformIO"
       span_ " which is a \"'back door' into the IO monad\". I think of each post as a call to this function. I put something out into the world unsure as to what might be thrown back at me."
 
 aboutHandler :: Monad m => m (Template About)
