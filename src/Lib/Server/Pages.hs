@@ -92,7 +92,8 @@ instance ToHtml PgpKey where
   toHtml PgpKey {..}= pre_ $ toHtml pPgpKey
 
 data About = About {
-  aAbout    :: Text
+  aTitle :: Text
+, aBody  :: Text
 } deriving Generic
 
 instance ToJSON About where
@@ -101,20 +102,11 @@ instance ToJSON About where
 instance ToHtml About where
   toHtmlRaw = toHtml
   toHtml About {..} = do
-    h3_ $ toHtml aAbout
-    p_ $ do
-      span_ "I've been working on private blockchain solutions for the financial services industry at "
-      a_ [href_ "https://symbiont.io", target_ "_blank"] "Symbiont.io"
-      span_ " since mid-2017. We hope to replace all the fax machines on Wall Street!"
-    p_ $ do
-      span_ "This blog is a collection of primarily technical posts. Writing the posts helps me further understand the topics and hopefully the posts themselves will be useful to the reader. It is named after the Haskell function "
-      a_ [ href_ "http://hackage.haskell.org/package/base-4.12.0.0/docs/System-IO-Unsafe.html#v:unsafePerformIO"
-         , target_ "_blank"] $
-        code_ "unsafePerformIO"
-      span_ " which is a \"'back door' into the IO monad\". I think of each post as a call to this function. I put something out into the world unsure as to what might be thrown back at me."
+    h3_ $ toHtml aTitle
+    toHtml $ renderMarkdown aTitle aBody
 
 aboutHandler :: Monad m => m (Template About)
-aboutHandler = pure . Template "About" $ About "I'm a full-stack software engineer currently working in New York City."
+aboutHandler = pure . Template "About" $ About "I'm a full-stack software engineer currently working in New York City." "I've been working on private blockchain solutions for the financial services industry at [Symbiont.io](https://symbiont.io) since mid-2017. We hope to replace all the fax machines on Wall Street!\n\nThis blog is a collection of primarily technical posts. Writing the posts helps me further understand the topics and hopefully the posts themselves will be useful to readers. It is named after the Haskell function [`unsafePerformIO`](http://hackage.haskell.org/package/base-4.12.0.0/docs/System-IO-Unsafe.html#v:unsafePerformIO) which is a \"'back door' into the IO monad\". I think of each post as a call to this function. I put something out into the world unsure as to what might be thrown back at me."
 
 contactHandler :: Monad m => m (Template Contact)
 contactHandler = pure . Template "Contact" $ Contact myLocation email linkedIn facebookMessenger instagram

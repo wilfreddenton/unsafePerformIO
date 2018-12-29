@@ -14,10 +14,9 @@ import           Data.Time           (UTCTime (UTCTime), defaultTimeLocale,
                                       secondsToDiffTime)
 import           Lib.Orphans         ()
 import           Lucid.Extended      (ToHtml, class_, div_, h1_, h3_, href_,
-                                      li_, p_, span_, termWith, toHtml,
-                                      toHtmlRaw, ul_)
+                                      li_, renderMarkdown, span_, termWith,
+                                      toHtml, toHtmlRaw, ul_)
 import           Protolude
-import qualified Text.MMark          as MMark
 
 -- Type
 data Post = Post {
@@ -33,11 +32,7 @@ instance ToHtml Post where
   toHtmlRaw = toHtml
   toHtml Post{..} = div_ [class_ "post"] $ do
     h1_ $ toHtml pTitle
-    markdown
-    where
-      markdown = toHtml $ case MMark.parse (show pTitle) pBody of
-        Left _  -> p_ "invalid markdown" -- should never run
-        Right m -> MMark.render m
+    toHtml $ renderMarkdown pTitle pBody
 
 instance ToHtml [Post] where
   toHtmlRaw = toHtml

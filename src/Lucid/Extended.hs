@@ -5,11 +5,18 @@ module Lucid.Extended (
 , row_
 , colMd4_
 , colMd8_
+, renderMarkdown
 ) where
 
 import           Data.Aeson.Extended (ToJSON, toJSON)
 import           Lucid               hiding (button_)
 import           Protolude
+import qualified Text.MMark          as MMark
+
+renderMarkdown :: Text -> Text -> Html ()
+renderMarkdown name textToRender = case MMark.parse (show name) textToRender of
+  Left _  -> p_ "invalid markdown" -- should never run
+  Right m -> MMark.render m
 
 button_ :: Term arg result => arg -> result
 button_ = termWith "a" [class_ "button"]
