@@ -8,8 +8,8 @@ module Lib.Effects.Post where
 
 import           Data.Aeson     (FromJSON, ToJSON)
 import           Lib.Orphans    ()
-import           Lucid.Extended (ToHtml, class_, div_, h1_, li_, p_, toHtml,
-                                 toHtmlRaw, ul_)
+import           Lucid.Extended (ToHtml, class_, div_, h1_, h3_, li_, p_,
+                                 toHtml, toHtmlRaw, ul_)
 import           Protolude
 import qualified Text.MMark     as MMark
 
@@ -34,8 +34,7 @@ instance ToHtml [Post] where
   toHtml = ul_ . foldMap asListItem
     where
       asListItem post = li_ $ do
-        toHtml post
-        -- h3_ . toHtml $ title post
+        h3_ . toHtml $ "_" <> title post
 
 -- Typeclass
 class Monad m => MonadPost m where

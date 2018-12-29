@@ -38,6 +38,10 @@ instance ToHtml a => ToHtml (Template a) where
       script_ "hljs.initHighlightingOnLoad()"
     body_ . container_ . row_ $ do
       colMd4_ . nav_ $ do
-        h2_ [id_ "title"] "unsafePerformIO"
+        h1_ [id_ "title"] "unsafePerformIO"
         p_ "[ Author: Wilfred Denton ]"
+        ul_ $ do
+          li_ $ a_ [href_ "https://github.com/wilfreddenton/resume/blob/master/wilfred_denton_resume.pdf", target_ "_blank"] "Resumé"
+          li_ $ a_ [href_ ""] "Contact"
+          li_ $ a_ [href_ ""] "PGP Key"
       colMd8_ . div_ [class_ "content"] $ toHtml a
