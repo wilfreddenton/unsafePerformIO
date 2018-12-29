@@ -82,11 +82,23 @@ instance ToHtml Contact where
         strong_ $ k <> ": "
         toHtml v
 
+newtype PgpKey = PgpKey { pPgpKey :: Text } deriving Generic
+
+instance ToJSON PgpKey where
+  toJSON = genericToJSON snakeNoPrefix
+
+instance ToHtml PgpKey where
+  toHtmlRaw = toHtml
+  toHtml PgpKey {..}= pre_ $ toHtml pPgpKey
+
 contactHandler :: Monad m => m (Template Contact)
-contactHandler = pure . Template "contact" $ Contact myLocation email linkedIn facebookMessenger instagram
+contactHandler = pure . Template "Contact" $ Contact myLocation email linkedIn facebookMessenger instagram
   where
     myLocation = MyLocation "New York, New York"
     email = Email "dentonw3@gmail.com"
     linkedIn = LinkedIn "wilfreddenton"
     facebookMessenger = FacebookMessenger "wilfreddenton"
     instagram = Instagram "unsafe_perform_io"
+
+pgpKeyHandler :: Monad m => m (Template PgpKey)
+pgpKeyHandler = pure . Template "PGP Key" $ PgpKey "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n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\n=7mVf\n-----END PGP PUBLIC KEY BLOCK-----\n"

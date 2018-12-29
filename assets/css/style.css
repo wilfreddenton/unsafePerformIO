@@ -73,6 +73,12 @@ html {
   font-size: 14px;
 }
 
+body {
+  position: relative;
+  min-height: 100vh;
+  margin: 0;
+}
+
 h1 {
   font-size: 2rem;
 }
@@ -115,6 +121,10 @@ ul li {
   margin: 1rem 0;
 }
 
+footer {
+  padding: 2rem 0;
+}
+
 a.post-link {
   padding: 0;
   width: 100%;
@@ -131,12 +141,30 @@ a.post-link:hover {
   font-size: 1.6rem;
 }
 
-body > .container {
-  margin-top: 3rem;
+body > .container:first-child {
+  padding-top: 3rem;
+  padding-bottom: 10rem;
 }
 
 .content {
   margin-top: 7.05rem;
+}
+
+#license {
+  padding: 0;
+  background-color: transparent;
+}
+
+#license img {
+  margin-top: 1rem;
+}
+
+#footer-container {
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+  bottom: 0px;
+  position: absolute;
 }
 
 span.inset {
@@ -149,6 +177,8 @@ li:hover span.inset {
 
 .post-list-date {
   float: right;
+  font-family: 'AT', monospace;
+  font-size: 0.9rem;
 }
 
 @media (max-width: 1200px) {}
@@ -157,7 +187,7 @@ li:hover span.inset {
 
 @media (max-width: 768px) {
   body > .container {
-    margin-top: 1rem;
+    padding-top: 1rem;
   }
 
   .content {

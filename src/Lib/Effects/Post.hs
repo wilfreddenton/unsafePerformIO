@@ -60,7 +60,9 @@ class Monad m => MonadPost m where
 getPostsPure :: Monad m => m [Post]
 getPostsPure = pure $
   [
-    Post "Haskell is Frustratingly Good" (UTCTime (fromGregorian 2017 2 12) (secondsToDiffTime 0)) "*unsafePerformIO*"
+    Post "HTML Templating with Lucid" (UTCTime (fromGregorian 2018 12 30) (secondsToDiffTime 0)) "blah blah blah!"
+  , Post "Haskell JSON Tricks" (UTCTime (fromGregorian 2018 11 20) (secondsToDiffTime 0)) "blah blah blah!"
+  , Post "Haskell is Frustratingly Good" (UTCTime (fromGregorian 2017 2 12) (secondsToDiffTime 0)) "*unsafePerformIO*"
   , Post "Foo" (UTCTime (fromGregorian 2008 8 22) (secondsToDiffTime 0)) "Let's go to the *Bar* ok?"
   , Post "Hello, World!" (UTCTime (fromGregorian 1994 1 31) (secondsToDiffTime 0)) "Here is a snippet of code bro.\n```haskell\ninstance ToHtml Post where\n  toHtmlRaw = toHtml\n  toHtml Post{..} = div_ [class_ \"post\"] $ do\n    h1_ $ toHtml title\n    markdown\n    where\n      markdown = toHtml $ case MMark.parse (show title) body of\n        Left _  -> p_ \"invalid markdown\" -- should never run\n        Right m -> MMark.render m\n```\nDid you enjoy this code?"
   ]

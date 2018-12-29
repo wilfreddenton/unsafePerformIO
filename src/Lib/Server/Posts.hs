@@ -8,4 +8,4 @@ import           Protolude
 getPostsHandler :: (MonadLogger m, MonadPost m) => m (Template [Post])
 getPostsHandler = withNamespace "getPosts" $ do
   info "request for posts"
-  Template "posts" <$> getPosts
+  Template "Posts" <$> getPosts
