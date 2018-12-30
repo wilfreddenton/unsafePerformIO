@@ -11,8 +11,13 @@ import           Protolude
 import           Servant            ((:<|>), (:>), Capture, Get, JSON, Raw)
 import           Servant.HTML.Lucid (HTML)
 
-type API = Get '[JSON, HTML] (Template [Post]) :<|>
-  "posts" :> Capture "slug" Text :> Get '[JSON, HTML] (Template Post) :<|>
+type GetPosts = Get '[JSON, HTML] (Template [Post])
+
+type API = GetPosts :<|>
+  "posts" :> (
+    GetPosts :<|>
+    Capture "slug" Text :> Get '[JSON, HTML] (Template Post)
+  ) :<|>
   "about" :> Get '[JSON, HTML] (Template About) :<|>
   "contact" :> Get '[JSON, HTML] (Template Contact) :<|>
   "pgp" :> Get '[JSON, HTML] (Template PgpKey) :<|>

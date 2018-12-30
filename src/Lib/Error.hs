@@ -25,7 +25,7 @@ toHttpError req appErr =
       acceptHeaderM = Map.lookup hAccept headersMap
       jsonTuple = (encode . toJSON, (hContentType, "application/json"))
       htmlTuple = (renderBS . toHtml . Template "error", (hContentType, "text/html"))
-      (toBS, contentType) = case acceptHeaderM of
+      (toBS, contentTypeHeader) = case acceptHeaderM of
         Nothing -> jsonTuple
         Just accept  -> if B.isInfixOf "text/html" accept then htmlTuple else jsonTuple
-  in ServantErr 500 "Internal Server Error" (toBS appErr) [contentType]
+  in ServantErr 500 "Internal Server Error" (toBS appErr) [contentTypeHeader]

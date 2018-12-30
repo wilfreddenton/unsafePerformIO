@@ -17,7 +17,7 @@ import           Servant
 serverT :: ServerT API App
 serverT =
   getPostsHandler :<|>
-  getPostHandler :<|>
+  (getPostsHandler :<|> getPostHandler) :<|>
   aboutHandler :<|>
   contactHandler :<|>
   pgpKeyHandler :<|>
