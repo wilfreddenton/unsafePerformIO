@@ -9,7 +9,7 @@ import           Lib.App          (App, appToHandler)
 import           Lib.Env          (AppEnv)
 import           Lib.Server.Api   (API)
 import           Lib.Server.Pages (aboutHandler, contactHandler, pgpKeyHandler)
-import           Lib.Server.Posts (getPostsHandler)
+import           Lib.Server.Posts (getPostHandler, getPostsHandler)
 import           Network.Wai      (Application)
 import           Protolude        hiding (log)
 import           Servant
@@ -17,6 +17,7 @@ import           Servant
 serverT :: ServerT API App
 serverT =
   getPostsHandler :<|>
+  getPostHandler :<|>
   aboutHandler :<|>
   contactHandler :<|>
   pgpKeyHandler :<|>
