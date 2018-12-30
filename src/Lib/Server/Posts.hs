@@ -1,15 +1,15 @@
-{-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE DeriveGeneric    #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RecordWildCards  #-}
 
 module Lib.Server.Posts where
 
 import           Data.Aeson.Extended (ToJSON, genericToJSON, object,
                                       snakeNoPrefix, toJSON, (.=))
-import           Data.Map.Strict     ((!))
 import           Lib.Effects.Logger  (MonadLogger, info, withContext,
                                       withNamespace)
-import           Lib.Effects.Post    (MonadPost, Post, getPostBySlug, getPosts,
-                                      postsMap)
+import           Lib.Effects.Post    (MonadPost, Post, getPostBySlug, getPosts)
+import           Lib.Error           (AppError (AppError))
 import           Lucid.Extended      (Template (Template))
 import           Protolude
 
@@ -33,9 +33,11 @@ getPostsHandler = withNamespace "getPosts" $ do
   info "request for posts"
   Template "Posts" <$> getPosts
 
-getPostHandler :: (MonadLogger m, MonadPost m) => Text -> m (Template Post)
+getPostHandler :: (MonadLogger m, MonadPost m, MonadError AppError m) => Text -> m (Template Post)
 getPostHandler slug = withNamespace "getPost" . withContext (object ["slug" .= slug]) $ do
   info "request for post"
   postM <- getPostBySlug slug
-  let post = fromMaybe (postsMap ! "1994-01-31-hello-world") postM
+  post <- case postM of
+    Nothing -> throwError $ AppError "post not found"
+    Just p  -> pure $ p
   pure $ Template "Post" post

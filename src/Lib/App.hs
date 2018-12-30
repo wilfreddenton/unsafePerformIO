@@ -14,6 +14,7 @@ import           Lib.Effects.Time   (MonadTime, now, nowIO)
 import           Lib.Env            (AppEnv, HasLoggerEnv, loggerContext,
                                      loggerLogEnv, loggerNamespace)
 import           Lib.Error          (AppError, toHttpError)
+import           Network.Wai        (Request)
 import           Protolude
 import           Servant            (Handler)
 
@@ -40,7 +41,7 @@ instance MonadTime App where
 runLoggerT :: HasLoggerEnv e => e -> KatipContextT m a -> m a
 runLoggerT env = runKatipContextT (env^.loggerLogEnv) (env^.loggerContext) (env^.loggerNamespace)
 
-appToHandler :: AppEnv -> App a -> Handler a
-appToHandler env app = do
+appToHandler :: AppEnv -> Request -> App a -> Handler a
+appToHandler env req app = do
   res <- liftIO . runExceptT . flip runReaderT env . runLoggerT env $ unApp app
-  either (\e -> throwError (toHttpError e)) pure res
+  either (\e -> throwError (toHttpError req e)) pure res

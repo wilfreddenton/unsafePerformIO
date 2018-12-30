@@ -27,4 +27,5 @@ api :: Proxy API
 api = Proxy
 
 app :: AppEnv -> Application
-app env = serve api $ hoistServer api (appToHandler env) serverT
+app env = requestProvider $ \req -> serve api $ hoistServer api (appToHandler env req) serverT
+  where requestProvider baseApp = \req responseFunc -> baseApp req req responseFunc
