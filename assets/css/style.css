@@ -80,14 +80,10 @@ body {
 }
 
 h1 {
-  font-size: 2rem;
-}
-
-h2 {
   font-size: 1.6rem;
 }
 
-h3, h4, h5, h6 {
+h2, h3, h4, h5, h6 {
   font-size: 1rem;
   display: inline;
 }
@@ -185,9 +181,10 @@ li:hover span.inset {
 }
 
 .post-list-date {
-  float: right;
+  text-alignt: right;
   font-family: 'AT', monospace;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
 }
 
 @media (max-width: 1200px) {}
@@ -209,4 +206,11 @@ li:hover span.inset {
   }
 }
 
-@media (max-width: 576px) {}
+@media (max-width: 576px) {
+  ul li {
+    height: auto;
+  }
+  .post-list-date {
+    text-align: left
+  }
+}

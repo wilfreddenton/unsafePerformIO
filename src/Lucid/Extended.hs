@@ -3,6 +3,8 @@ module Lucid.Extended (
 , Template (..)
 , container_
 , row_
+, colSm4_
+, colSm8_
 , colMd4_
 , colMd8_
 , renderMarkdown
@@ -26,6 +28,12 @@ container_ = termWith "div" [class_ " container "]
 
 row_ :: Term arg result => arg -> result
 row_ = termWith "div" [class_ " row "]
+
+colSm4_ :: Term arg result => arg -> result
+colSm4_ = termWith "div" [class_ " col-sm-4 "]
+
+colSm8_ :: Term arg result => arg -> result
+colSm8_ = termWith "div" [class_ " col-sm-8 "]
 
 colMd4_ :: Term arg result => arg -> result
 colMd4_ = termWith "div" [class_ " col-md-4 "]
@@ -68,7 +76,7 @@ instance ToHtml a => ToHtml (Template a) where
         div_ [style_ "margin-top: 1rem"]$ do
           a_ [rel_ "license", href_ "http://creativecommons.org/licenses/by-sa/3.0/us/"] $
             img_ [ alt_ "Creative Commons License"
-                , style_ "border-width:0"
-                , src_ "https://i.creativecommons.org/l/by-sa/3.0/us/80x15.png"
-                ]
+                 , style_ "border-width:0"
+                 , src_ "https://i.creativecommons.org/l/by-sa/3.0/us/80x15.png"
+                 ]
           button_ [id_ "view-source", href_ "", (target_) "_blank"] "</>"

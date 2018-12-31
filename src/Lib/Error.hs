@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Lib.Error where
@@ -11,9 +12,9 @@ import qualified Data.Text           as T
 import qualified Data.Text.Encoding  as T
 import           Lucid.Extended      (HtmlT, Template (Template), ToHtml, h3_,
                                       p_, renderBS, span_, toHtml, toHtmlRaw)
-import           Network.HTTP.Types  (Status, hAccept, hContentType, status400,
-                                      status404, status500, statusCode,
-                                      statusMessage)
+import           Network.HTTP.Types  (Status (Status), hAccept, hContentType,
+                                      status400, status404, status500,
+                                      statusCode, statusMessage)
 import           Network.Wai         (Request, requestHeaders)
 import           Protolude
 import           Servant             (ServantErr (ServantErr))
@@ -79,6 +80,10 @@ instance AsDbError AppError where
 instance AsPostError AppError where
   _PostError = _AppPostError . _PostError
 
+instance HttpStatus AppError where
+  httpStatus (AppPostError err) = httpStatus err
+  httpStatus (AppDbError err)   = httpStatus err
+
 instance ToJSON AppError where
   toJSON appErr = case appErr of
     AppPostError err -> toJSON' err
@@ -94,9 +99,10 @@ toHttpError :: Request -> AppError -> ServantErr
 toHttpError req appErr =
   let headersMap = Map.fromList $ requestHeaders req
       acceptHeaderM = Map.lookup hAccept headersMap
+      Status { statusCode, statusMessage} = httpStatus appErr
       jsonTuple = (encode . toJSON, (hContentType, "application/json"))
       htmlTuple = (renderBS . toHtml . Template "error", (hContentType, "text/html"))
       (toBS, contentTypeHeader) = case acceptHeaderM of
         Nothing -> jsonTuple
         Just accept  -> if B.isInfixOf "text/html" accept then htmlTuple else jsonTuple
-  in ServantErr 500 "Internal Server Error" (toBS appErr) [contentTypeHeader]
+  in ServantErr (statusCode) (show $ statusMessage) (toBS appErr) [contentTypeHeader]
