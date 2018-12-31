@@ -1,6 +1,4 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Lib.Error where
 
@@ -11,8 +9,8 @@ import qualified Data.ByteString     as B
 import qualified Data.Map.Strict     as Map
 import qualified Data.Text           as T
 import qualified Data.Text.Encoding  as T
-import           Lucid.Extended      (Template (Template), ToHtml, h3_, p_,
-                                      renderBS, span_, toHtml, toHtmlRaw)
+import           Lucid.Extended      (HtmlT, Template (Template), ToHtml, h3_,
+                                      p_, renderBS, span_, toHtml, toHtmlRaw)
 import           Network.HTTP.Types  (Status, hAccept, hContentType, status400,
                                       status404, status500, statusCode,
                                       statusMessage)
@@ -64,9 +62,10 @@ instance ToHtml PostError where
   toHtmlRaw = toHtml
   toHtml = toHtml'
     where
+      toHtml' :: Monad m => PostError -> HtmlT m ()
       toHtml' postErr = do
-        _ <- h3_ $ do
-          _ <- span_ . toHtml . (<> " "). T.pack . show . statusCode $ httpStatus postErr
+        h3_ $ do
+          span_ . toHtml . (<> " "). T.pack . show . statusCode $ httpStatus postErr
           span_ . toHtml . T.decodeUtf8 . statusMessage $ httpStatus postErr
         p_ . toHtml $ errorMessage postErr
 

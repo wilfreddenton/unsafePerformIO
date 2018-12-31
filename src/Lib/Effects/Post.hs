@@ -1,9 +1,7 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Lib.Effects.Post where
 
@@ -17,9 +15,9 @@ import           Data.Time           (UTCTime (UTCTime), defaultTimeLocale,
                                       formatTime, fromGregorian,
                                       secondsToDiffTime)
 import           Lib.Orphans         ()
-import           Lucid.Extended      (ToHtml, class_, div_, h1_, h3_, href_,
-                                      li_, renderMarkdown, span_, termWith,
-                                      toHtml, toHtmlRaw, ul_)
+import           Lucid.Extended      (HtmlT, ToHtml, class_, div_, h1_, h3_,
+                                      href_, li_, renderMarkdown, span_,
+                                      termWith, toHtml, toHtmlRaw, ul_)
 import           Protolude
 
 -- Type
@@ -43,9 +41,10 @@ instance ToHtml [Post] where
   toHtmlRaw = toHtml
   toHtml = ul_ . foldMap asListItem
     where
+      asListItem :: Monad m => Post -> HtmlT m ()
       asListItem Post {..} = li_ $ do
         termWith "a" [class_ "post-link", href_ $ "/posts/" <> pSlug] $ do
-          _ <- h3_ $ do
+          h3_ $ do
             span_ [class_ "inset"] "_"
             toHtml $ pTitle
           span_ [class_ "post-list-date"] . toHtml . formatTime defaultTimeLocale "%b %d, %_Y" $ pCreatedAt
