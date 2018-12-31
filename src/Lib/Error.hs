@@ -4,8 +4,8 @@
 module Lib.Error where
 
 import           Control.Lens        (makeClassyPrisms)
-import           Data.Aeson.Extended (ToJSON, Value (Null), encode, object,
-                                      toJSON, (.=))
+import           Data.Aeson.Extended (ToJSON, Value, encode, object, toJSON,
+                                      (.=))
 import qualified Data.ByteString     as B
 import qualified Data.Map.Strict     as Map
 import qualified Data.Text           as T
@@ -25,6 +25,37 @@ class HttpStatus a where
 class ErrorMessage a where
   errorMessage :: a -> Text
 
+toJSON' :: (HttpStatus a, ErrorMessage a) => a -> Value
+toJSON' a = object [ "code" .= statusCode (httpStatus a)
+                   , "message" .= errorMessage a
+                   ]
+
+toHtml' :: (HttpStatus a, ErrorMessage a, Monad m) => a -> HtmlT m ()
+toHtml' err = do
+  h3_ $ do
+    span_ . toHtml . (<> " "). T.pack . show $ statusCode status
+    span_ . toHtml . T.decodeUtf8 $ statusMessage status
+  p_ . toHtml $ errorMessage err
+  where status = httpStatus err
+
+data ApiError = NotFoundError Text | OtherError
+makeClassyPrisms ''ApiError
+
+instance HttpStatus ApiError where
+  httpStatus (NotFoundError _) = status404
+  httpStatus OtherError        = status500
+
+instance ErrorMessage ApiError where
+  errorMessage (NotFoundError route) = "No such route: " <> route
+  errorMessage OtherError            = "undefined"
+
+instance ToJSON ApiError where
+  toJSON = toJSON'
+
+instance ToHtml ApiError where
+  toHtmlRaw = toHtml
+  toHtml = toHtml'
+
 data DbError = DbError1 | DbError2
 makeClassyPrisms ''DbError
 
@@ -35,7 +66,7 @@ instance ErrorMessage DbError where
   errorMessage _ = "undefined"
 
 instance ToJSON DbError where
-  toJSON _ = Null
+  toJSON = toJSON'
 
 instance ToHtml DbError where
   toHtmlRaw = toHtml
@@ -55,24 +86,18 @@ instance ErrorMessage PostError where
 
 instance ToJSON PostError where
   toJSON = toJSON'
-    where toJSON' postErr = object [ "code" .= statusCode (httpStatus postErr)
-                                   , "message" .= errorMessage postErr
-                                   ]
 
 instance ToHtml PostError where
   toHtmlRaw = toHtml
   toHtml = toHtml'
-    where
-      toHtml' :: Monad m => PostError -> HtmlT m ()
-      toHtml' postErr = do
-        h3_ $ do
-          span_ . toHtml . (<> " "). T.pack . show . statusCode $ httpStatus postErr
-          span_ . toHtml . T.decodeUtf8 . statusMessage $ httpStatus postErr
-        p_ . toHtml $ errorMessage postErr
 
-data AppError = AppPostError PostError
+data AppError = AppApiError ApiError
+              | AppPostError PostError
               | AppDbError DbError
 makeClassyPrisms ''AppError
+
+instance AsApiError AppError where
+  _ApiError = _AppApiError . _ApiError
 
 instance AsDbError AppError where
   _DbError = _AppDbError . _DbError
@@ -83,17 +108,20 @@ instance AsPostError AppError where
 instance HttpStatus AppError where
   httpStatus (AppPostError err) = httpStatus err
   httpStatus (AppDbError err)   = httpStatus err
+  httpStatus (AppApiError err)  = httpStatus err
 
 instance ToJSON AppError where
   toJSON appErr = case appErr of
-    AppPostError err -> toJSON' err
-    AppDbError err   -> toJSON' err
-    where toJSON' err = object ["error" .= toJSON err]
+    AppPostError err -> toJSON'' err
+    AppDbError err   -> toJSON'' err
+    AppApiError err  -> toJSON'' err
+    where toJSON'' err = object ["error" .= toJSON err]
 
 instance ToHtml AppError where
   toHtmlRaw = toHtml
   toHtml (AppPostError err) = toHtml err
   toHtml (AppDbError err)   = toHtml err
+  toHtml (AppApiError err)  = toHtml err
 
 toHttpError :: Request -> AppError -> ServantErr
 toHttpError req appErr =
