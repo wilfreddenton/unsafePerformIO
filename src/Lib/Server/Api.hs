@@ -5,7 +5,6 @@
 module Lib.Server.Api where
 
 import           Lib.Effects.Post   (Post)
-import           Lib.Error          (AppError)
 import           Lib.Server.Pages   (About, Contact, PgpKey)
 import           Lucid.Extended     (Template)
 import           Protolude
@@ -23,4 +22,4 @@ type API = GetPosts :<|>
   "contact" :> Get '[JSON, HTML] (Template Contact) :<|>
   "pgp" :> Get '[JSON, HTML] (Template PgpKey) :<|>
   "static" :> Raw :<|>
-  Capture "*" Text :> Get '[JSON, HTML] (Template AppError)
+  Raw

@@ -1,44 +1,54 @@
 {-# LANGUAGE ExplicitNamespaces #-}
+{-# LANGUAGE RecordWildCards    #-}
 
 module Lib.Server (
   app
 ) where
 
-import           Control.Lens        (( # ))
-import           Data.Aeson.Extended (object, (.=))
-import           Data.Proxy          (Proxy (Proxy))
-import           Lib.App             (App, appToHandler)
-import           Lib.Effects.Logger  (MonadLogger, info, withContext,
-                                      withNamespace)
-import           Lib.Env             (AppEnv)
-import           Lib.Error           (AppError, AsApiError, _NotFoundError)
-import           Lib.Server.Api      (API)
-import           Lib.Server.Pages    (aboutHandler, contactHandler,
-                                      pgpKeyHandler)
-import           Lib.Server.Posts    (getPostHandler, getPostsHandler)
-import           Lucid.Extended      (Template)
-import           Network.Wai         (Application)
-import           Protolude           hiding (log)
+import           Control.Lens          (( # ))
+import           Data.Aeson.Extended   (object, (.=))
+import qualified Data.ByteString.Char8 as BS
+import           Data.Proxy            (Proxy (Proxy))
+import qualified Data.Text.Encoding    as T
+import           Lib.App               (App, appToHandler, runLoggerT)
+import           Lib.Effects.Logger    (infoKatip, withContextKatip,
+                                        withNamespaceKatip)
+import           Lib.Env               (AppEnv, HasLoggerEnv)
+import           Lib.Error             (errorMessage, toHttpError,
+                                        _NotFoundError)
+import           Lib.Server.Api        (API)
+import           Lib.Server.Pages      (aboutHandler, contactHandler,
+                                        pgpKeyHandler)
+import           Lib.Server.Posts      (getPostHandler, getPostsHandler)
+import           Network.HTTP.Types    (mkStatus)
+import           Network.Wai           (Application, rawPathInfo, responseLBS)
+import           Protolude             hiding (log)
 import           Servant
 
-notFoundHandler :: (MonadLogger m, MonadError e m, AsApiError e) => Text -> m (Template AppError)
-notFoundHandler endpoint = withNamespace "notFound" . withContext (object ["route" .= endpoint]) $ do
-  info "route not found"
-  throwError $ _NotFoundError # endpoint
+notFoundHandler :: (HasLoggerEnv a) => a -> ServerT Raw m
+notFoundHandler env = Tagged $ \req res -> do
+  let route' = T.decodeUtf8 $ rawPathInfo req
+      appErr = _NotFoundError # route'
+  liftIO . runLoggerT env . withNamespaceKatip "notFound" . withContextKatip (object ["route" .= route']) $
+    infoKatip $ errorMessage appErr
+  res . responseServantErr . toHttpError req $ appErr
+  where
+    responseServantErr ServantErr{..} =
+      responseLBS (mkStatus errHTTPCode (BS.pack errReasonPhrase)) errHeaders errBody
 
-serverT :: ServerT API App
-serverT =
+serverT :: (HasLoggerEnv a) => a -> ServerT API App
+serverT env =
   getPostsHandler :<|>
   (getPostsHandler :<|> getPostHandler) :<|>
   aboutHandler :<|>
   contactHandler :<|>
   pgpKeyHandler :<|>
   serveDirectoryWebApp "assets" :<|>
-  notFoundHandler
+  notFoundHandler env
 
 api :: Proxy API
 api = Proxy
 
 app :: AppEnv -> Application
-app env = requestProvider $ \req -> serve api $ hoistServer api (appToHandler env req) serverT
-  where requestProvider baseApp = \req responseFunc -> baseApp req req responseFunc
+app env = requestProvider $ \req -> serve api . hoistServer api (appToHandler env req) $ serverT env
+  where requestProvider baseApp = \req res -> baseApp req req res

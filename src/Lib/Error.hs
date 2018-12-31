@@ -110,6 +110,11 @@ instance HttpStatus AppError where
   httpStatus (AppDbError err)   = httpStatus err
   httpStatus (AppApiError err)  = httpStatus err
 
+instance ErrorMessage AppError where
+  errorMessage (AppPostError err) = errorMessage err
+  errorMessage (AppDbError err)   = errorMessage err
+  errorMessage (AppApiError err)  = errorMessage err
+
 instance ToJSON AppError where
   toJSON appErr = case appErr of
     AppPostError err -> toJSON'' err
