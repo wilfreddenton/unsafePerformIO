@@ -63,10 +63,10 @@ postsMap = Map.fromList $ fmap makePost postData
     makeSlug title createdAt =
       let createdAtStr = formatTime defaultTimeLocale "%_Y-%m-%d" createdAt
           modifiedTitle = T.intercalate "-" . T.words . T.toLower $ T.map (\c -> if isAlphaNum c then c else ' ') title
-       in T.pack createdAtStr <> "-" <> modifiedTitle
+      in T.pack createdAtStr <> "-" <> modifiedTitle
     makePost (title, createdAt, body) =
-      let slug = makeSlug title createdAt in
-        (slug, Post slug title createdAt body)
+      let slug = makeSlug title createdAt
+      in (slug, Post slug title createdAt body)
     postData = [
         ("HTML Templating with Lucid", (UTCTime (fromGregorian 2018 12 30) (secondsToDiffTime 0)), "blah blah blah!")
       , ("Haskell JSON Tricks", (UTCTime (fromGregorian 2018 11 20) (secondsToDiffTime 0)), "blah blah blah!")
