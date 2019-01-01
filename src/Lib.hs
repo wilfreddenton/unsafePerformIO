@@ -5,8 +5,8 @@ import           Katip                    (closeScribes)
 import           Lib.App                  (runLoggerT)
 import           Lib.Effects.Logger       (infoKatip, withContextKatip)
 import           Lib.Env                  (AppEnv (AppEnv), ServerEnv,
-                                           loggerLogEnv, newLoggerEnv,
-                                           serverEnv, serverPort)
+                                           loggerLogEnv, newLoggerEnv, sePort,
+                                           serverEnv)
 import           Lib.Server               (app)
 import           Network.Wai.Handler.Warp (run)
 import           Protolude
@@ -18,7 +18,7 @@ initialize serverEnv' = bracket makeAppEnv stopApp runApp
       loggerEnv <- newLoggerEnv
       pure $ AppEnv serverEnv' loggerEnv
     runApp env = do
-      let port = env^.serverPort
+      let port = env^.sePort
       liftIO . runLoggerT env . withContextKatip (env^.serverEnv) $ infoKatip "Running"
       run port $ app env
     stopApp env = do

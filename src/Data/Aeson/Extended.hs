@@ -5,12 +5,13 @@ module Data.Aeson.Extended (
 
 import           Data.Aeson
 import           Data.Aeson.Casing (snakeCase)
-import           Data.Char         (isLower)
+import           Data.Char         (isAlphaNum, isLower)
 import           Data.String       (String)
 import           Protolude
 
 dropPrefix :: String -> String
-dropPrefix = dropWhile isLower
+dropPrefix = dropWhile f
+  where f = (||) <$> isLower <*> (not . isAlphaNum)
 
 snakeNoPrefix :: Options
 snakeNoPrefix = defaultOptions { fieldLabelModifier = snakeCase . dropPrefix }

@@ -1,10 +1,12 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+{-# LANGUAGE DeriveGeneric   #-}
 module Lib.Env where
 
 import           Control.Lens            (makeClassy)
-import           Data.Aeson.Extended     (ToJSON, encode, object, toJSON, (.=))
+import           Data.Aeson.Extended     (ToJSON, encode, genericToJSON, object,
+                                          snakeNoPrefix, toJSON, (.=))
 import           Data.Text.Lazy.Builder  (fromText, toLazyText)
 import           Data.Text.Lazy.Encoding (decodeUtf8)
 import           Katip                   (ColorStrategy (ColorIfTerminal),
@@ -18,11 +20,14 @@ import           Katip                   (ColorStrategy (ColorIfTerminal),
 import           Katip.Format.Time       (formatAsLogTime)
 import           Protolude               hiding (decodeUtf8)
 
-data ServerEnv = ServerEnv { _serverPort :: Int }
+data ServerEnv = ServerEnv {
+  _sePort           :: Int
+, _seSqliteDatabase :: FilePath
+} deriving Generic
 makeClassy ''ServerEnv
 
 instance ToJSON ServerEnv where
-  toJSON (ServerEnv port) = object [ "port" .= port ]
+  toJSON = genericToJSON snakeNoPrefix
 
 data LoggerEnv = LoggerEnv {
   _loggerLogEnv    :: LogEnv
