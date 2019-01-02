@@ -41,7 +41,7 @@ data LoggerEnv = LoggerEnv {
 makeClassy ''LoggerEnv
 
 data DbEnv = DbEnv {
-  _dbConn :: Connection
+  _dConn :: Connection
 }
 makeClassy ''DbEnv
 
@@ -88,4 +88,4 @@ instance HasLoggerEnv AppEnv where
 instance HasDbEnv AppEnv where
   dbEnv = appDbEnv . dbEnv
 
-type CanDb a m = (MonadReader a m, HasDbEnv a)
+type CanDbEnv a m = (MonadReader a m, HasDbEnv a)

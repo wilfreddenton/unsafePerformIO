@@ -59,21 +59,22 @@ instance ToHtml ApiError where
   toHtmlRaw = toHtml
   toHtml = toHtml'
 
-data DbError = DbError1 | DbError2
+data DbError = DbErrorSqlite Text | DbError1
 makeClassyPrisms ''DbError
 
 instance HttpStatus DbError where
   httpStatus _ = status500
 
 instance ErrorMessage DbError where
-  errorMessage _ = "undefined"
+  errorMessage (DbErrorSqlite msg) = msg
+  errorMessage DbError1            = "undefined"
 
 instance ToJSON DbError where
   toJSON = toJSON'
 
 instance ToHtml DbError where
   toHtmlRaw = toHtml
-  toHtml = p_ . toHtml . errorMessage
+  toHtml = toHtml'
 
 data PostError = PostNotFoundError Text
                | PostPayloadInvalidError
@@ -151,3 +152,5 @@ logAndThrowError err = withNamespace "error" . withContext err $ do
 type CanError e m = (MonadError e m, ToJSON e)
 
 type CanPostError e m = (CanError e m, AsPostError e)
+
+type CanDbError e m = (CanError e m, AsDbError e)

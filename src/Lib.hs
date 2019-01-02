@@ -5,7 +5,7 @@ import           Database.SQLite.Simple   (close)
 import           Katip                    (closeScribes)
 import           Lib.App                  (runLoggerT)
 import           Lib.Effects.Logger       (infoKatip, withContextKatip)
-import           Lib.Env                  (AppEnv (AppEnv), ServerEnv, dbConn,
+import           Lib.Env                  (AppEnv (AppEnv), ServerEnv, dConn,
                                            lLogEnv, newDbEnv, newLoggerEnv,
                                            sPort, sSqliteDatabase, serverEnv)
 import           Lib.Server               (app)
@@ -25,5 +25,5 @@ initialize serverEnv' = bracket makeAppEnv stopApp runApp
       run port $ app env
     stopApp env = do
       liftIO . runLoggerT env $ infoKatip "Shutting down gracefully"
-      liftIO . close $ env^.dbConn
+      liftIO . close $ env^.dConn
       closeScribes $ env^.lLogEnv

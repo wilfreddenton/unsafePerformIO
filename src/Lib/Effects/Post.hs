@@ -18,7 +18,9 @@ import           Data.Time              (UTCTime (UTCTime), defaultTimeLocale,
 import           Database.SQLite.Simple (FromRow, NamedParam ((:=)), ToRow,
                                          field, fromRow, queryNamed, query_,
                                          toRow)
-import           Lib.Env                (CanDb, dbConn)
+import           Lib.Db                 (CanDb, liftDbAction)
+import           Lib.Effects.Logger     (MonadLogger)
+import           Lib.Env                (dConn)
 import           Lib.Orphans            ()
 import           Lucid.Extended         (HtmlT, ToHtml, class_, colSm4_,
                                          colSm8_, div_, h1_, h3_, href_, li_,
@@ -73,15 +75,15 @@ class Monad m => MonadPost m where
 -- Implementations
 
 -- SQLite
-getPostsSqlite :: (MonadIO m, CanDb a m) => m [Post]
+getPostsSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => m [Post]
 getPostsSqlite = do
-  conn <- view dbConn
-  liftIO (query_ conn "SELECT * FROM posts" :: IO [Post])
+  conn <- view dConn
+  liftDbAction (query_ conn "SELECT * FROM posts" :: IO [Post])
 
-getPostBySlugSqlite :: (MonadIO m, CanDb a m) => Text -> m (Maybe Post)
+getPostBySlugSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => Text -> m (Maybe Post)
 getPostBySlugSqlite slug = do
-  conn <- view dbConn
-  posts <- liftIO (queryNamed conn "SELECT * FROM posts WHERE slug = :slug" [":slug" := slug] :: IO [Post])
+  conn <- view dConn
+  posts <- liftDbAction (queryNamed conn "SELECT * FROM posts WHERE slug = :slug" [":slug" := slug] :: IO [Post])
   pure $ case posts of
     []  -> Nothing
     p:_ -> Just p
