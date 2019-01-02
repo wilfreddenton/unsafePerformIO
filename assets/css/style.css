@@ -184,7 +184,6 @@ li:hover span.inset {
   text-alignt: right;
   font-family: 'AT', monospace;
   font-size: 0.8rem;
-  margin-bottom: 1rem;
 }
 
 @media (max-width: 1200px) {}
