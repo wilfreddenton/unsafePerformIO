@@ -14,8 +14,8 @@ import           Lib.Effects.Post      (MonadPost, getPostBySlug,
                                         getPostBySlugPure, getPosts,
                                         getPostsPure)
 import           Lib.Effects.Time      (MonadTime, now, nowIO)
-import           Lib.Env               (AppEnv, HasLoggerEnv, loggerContext,
-                                        loggerLogEnv, loggerNamespace)
+import           Lib.Env               (AppEnv, HasLoggerEnv, lContext, lLogEnv,
+                                        lNamespace)
 import           Lib.Error             (AppError, toHttpError)
 import           Network.Wai           (Request)
 import           Protolude
@@ -45,7 +45,7 @@ instance MonadRandom App where
   getRandomBytes = liftIO . getEntropy
 
 runLoggerT :: HasLoggerEnv e => e -> KatipContextT m a -> m a
-runLoggerT env = runKatipContextT (env^.loggerLogEnv) (env^.loggerContext) (env^.loggerNamespace)
+runLoggerT env = runKatipContextT (env^.lLogEnv) (env^.lContext) (env^.lNamespace)
 
 appToHandler :: AppEnv -> Request -> App a -> Handler a
 appToHandler env req app = do

@@ -62,7 +62,7 @@ withNamespaceKatip namespace action = do
         Namespace ns -> pure $ ns
   katipAddNamespace (Namespace $ baseNamespace <> [namespace]) action
   where
-    randText n = fmap (T.take n . T.decodeUtf8 . B.encode) . getEntropy . uncurry (+) $ divMod n 2
+    randText n = T.take n . T.decodeUtf8 . B.encode <$> (getEntropy . uncurry (+) $ divMod n 2)
 
 withContextKatip :: (KatipContext m, ToJSON b) => b -> m a -> m a
 withContextKatip context = katipAddContext (toJSON context)

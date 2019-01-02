@@ -30,11 +30,16 @@ instance ToJSON ServerEnv where
   toJSON = genericToJSON snakeNoPrefix
 
 data LoggerEnv = LoggerEnv {
-  _loggerLogEnv    :: LogEnv
-, _loggerContext   :: LogContexts
-, _loggerNamespace :: Namespace
+  _lLogEnv    :: LogEnv
+, _lContext   :: LogContexts
+, _lNamespace :: Namespace
 }
 makeClassy ''LoggerEnv
+
+data DbEnv = DbEnv {
+  _dbConn :: Text
+}
+makeClassy ''DbEnv
 
 customJsonFormatter :: LogItem a => ItemFormatter a
 customJsonFormatter _color _verb Item{..} = fromText . toStrict . decodeUtf8 $ encode value
@@ -46,15 +51,19 @@ customJsonFormatter _color _verb Item{..} = fromText . toStrict . decodeUtf8 $ e
                    , "ns" .= _itemNamespace
                    ]
 
-newLoggerEnv :: IO LoggerEnv
+newLoggerEnv :: MonadIO m => m LoggerEnv
 newLoggerEnv = do
-  handleScribe <- mkHandleScribeWithFormatter customJsonFormatter ColorIfTerminal stdout DebugS V3
-  logEnv <- registerScribe "stdout" handleScribe defaultScribeSettings =<< initLogEnv "HSP" "development"
+  handleScribe <- liftIO $ mkHandleScribeWithFormatter customJsonFormatter ColorIfTerminal stdout DebugS V3
+  logEnv <- liftIO $ registerScribe "stdout" handleScribe defaultScribeSettings =<< initLogEnv "HSP" "development"
   pure $ LoggerEnv logEnv mempty mempty
+
+newDbEnv :: MonadIO m => m DbEnv
+newDbEnv = pure $ DbEnv "hey"
 
 data AppEnv = AppEnv {
   _appServerEnv :: ServerEnv
 , _appLoggerEnv :: LoggerEnv
+, _appDbEnv     :: DbEnv
 }
 makeClassy ''AppEnv
 
@@ -63,3 +72,6 @@ instance HasServerEnv AppEnv where
 
 instance HasLoggerEnv AppEnv where
   loggerEnv = appLoggerEnv . loggerEnv
+
+instance HasDbEnv AppEnv where
+  dbEnv = appDbEnv . dbEnv
