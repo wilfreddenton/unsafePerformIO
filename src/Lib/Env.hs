@@ -1,7 +1,8 @@
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-{-# LANGUAGE DeriveGeneric   #-}
 module Lib.Env where
 
 import           Control.Lens            (makeClassy)
@@ -65,7 +66,7 @@ newDbEnv path = do
   doesExist <- liftIO $ doesFileExist path
   case doesExist of
     False -> do
-      putStrLn $ "no sqlite database found at: " <> path
+      putStrLn $ "no sqlite database found at filepath: " <> path
       liftIO exitFailure
     True -> do
       conn <- liftIO $ open path
@@ -86,3 +87,5 @@ instance HasLoggerEnv AppEnv where
 
 instance HasDbEnv AppEnv where
   dbEnv = appDbEnv . dbEnv
+
+type CanDb a m = (MonadReader a m, HasDbEnv a)

@@ -5,29 +5,41 @@
 
 module Lib.Effects.Post where
 
-import           Data.Aeson.Extended (ToJSON, genericToJSON, snakeNoPrefix,
-                                      toJSON)
-import           Data.Char           (isAlphaNum)
-import           Data.Map.Strict     as Map
-import           Data.Map.Strict     (Map)
-import qualified Data.Text           as T
-import           Data.Time           (UTCTime (UTCTime), defaultTimeLocale,
-                                      formatTime, fromGregorian,
-                                      secondsToDiffTime)
-import           Lib.Orphans         ()
-import           Lucid.Extended      (HtmlT, ToHtml, class_, colSm4_, colSm8_,
-                                      div_, h1_, h3_, href_, li_,
-                                      renderMarkdown, row_, span_, termWith,
-                                      toHtml, toHtmlRaw, ul_)
+import           Control.Lens           (view)
+import           Data.Aeson.Extended    (ToJSON, genericToJSON, snakeNoPrefix,
+                                         toJSON)
+import           Data.Char              (isAlphaNum)
+import           Data.Map.Strict        as Map
+import           Data.Map.Strict        (Map)
+import qualified Data.Text              as T
+import           Data.Time              (UTCTime (UTCTime), defaultTimeLocale,
+                                         formatTime, fromGregorian,
+                                         secondsToDiffTime)
+import           Database.SQLite.Simple (FromRow, NamedParam ((:=)), ToRow,
+                                         field, fromRow, queryNamed, query_,
+                                         toRow)
+import           Lib.Env                (CanDb, dbConn)
+import           Lib.Orphans            ()
+import           Lucid.Extended         (HtmlT, ToHtml, class_, colSm4_,
+                                         colSm8_, div_, h1_, h3_, href_, li_,
+                                         renderMarkdown, row_, span_, termWith,
+                                         toHtml, toHtmlRaw, ul_)
 import           Protolude
 
 -- Type
 data Post = Post {
-  pSlug      :: Text
+  pId        :: Int
+, pSlug      :: Text
 , pTitle     :: Text
 , pCreatedAt :: UTCTime
 , pBody      :: Text
 } deriving (Eq, Show, Generic)
+
+instance FromRow Post where
+  fromRow = Post <$> field <*> field <*> field <*> field <*> field
+
+instance ToRow Post where
+  toRow Post {..} = toRow (pId, pSlug, pTitle, pCreatedAt, pBody)
 
 instance ToJSON Post where
   toJSON = genericToJSON snakeNoPrefix
@@ -60,17 +72,31 @@ class Monad m => MonadPost m where
 
 -- Implementations
 
+-- SQLite
+getPostsSqlite :: (MonadIO m, CanDb a m) => m [Post]
+getPostsSqlite = do
+  conn <- view dbConn
+  liftIO (query_ conn "SELECT * FROM posts" :: IO [Post])
+
+getPostBySlugSqlite :: (MonadIO m, CanDb a m) => Text -> m (Maybe Post)
+getPostBySlugSqlite slug = do
+  conn <- view dbConn
+  posts <- liftIO (queryNamed conn "SELECT * FROM posts WHERE slug = :slug" [":slug" := slug] :: IO [Post])
+  pure $ case posts of
+    []  -> Nothing
+    p:_ -> Just p
+
 -- Pure
 postsMap :: Map Text Post
-postsMap = Map.fromList $ fmap makePost postData
+postsMap = Map.fromList . fmap makePost $ zip [1..] postData
   where
     makeSlug title createdAt =
       let createdAtStr = formatTime defaultTimeLocale "%_Y-%m-%d" createdAt
           modifiedTitle = T.intercalate "-" . T.words . T.toLower $ T.map (\c -> if isAlphaNum c then c else ' ') title
       in T.pack createdAtStr <> "-" <> modifiedTitle
-    makePost (title, createdAt, body) =
+    makePost (id, (title, createdAt, body)) =
       let slug = makeSlug title createdAt
-      in (slug, Post slug title createdAt body)
+      in (slug, Post id slug title createdAt body)
     postData = [
         ("HTML Templating with Lucid", (UTCTime (fromGregorian 2018 12 30) (secondsToDiffTime 0)), "blah blah blah!")
       , ("Haskell JSON Tricks", (UTCTime (fromGregorian 2018 11 20) (secondsToDiffTime 0)), "blah blah blah!")

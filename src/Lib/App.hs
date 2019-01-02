@@ -11,8 +11,8 @@ import           Lib.Effects.Logger    (MonadLogger (..), debugKatip,
                                         errorKatip, infoKatip, warnKatip,
                                         withContextKatip, withNamespaceKatip)
 import           Lib.Effects.Post      (MonadPost, getPostBySlug,
-                                        getPostBySlugPure, getPosts,
-                                        getPostsPure)
+                                        getPostBySlugSqlite, getPosts,
+                                        getPostsSqlite)
 import           Lib.Effects.Time      (MonadTime, now, nowIO)
 import           Lib.Env               (AppEnv, HasLoggerEnv, lContext, lLogEnv,
                                         lNamespace)
@@ -35,8 +35,8 @@ instance MonadLogger App where
   withContext = withContextKatip
 
 instance MonadPost App where
-  getPosts = getPostsPure
-  getPostBySlug = getPostBySlugPure
+  getPosts = getPostsSqlite
+  getPostBySlug = getPostBySlugSqlite
 
 instance MonadTime App where
   now = nowIO
