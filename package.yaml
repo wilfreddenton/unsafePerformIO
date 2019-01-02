@@ -38,6 +38,7 @@ dependencies:
 - bytestring
 - containers
 - cryptonite
+- directory
 - http-types
 - katip
 - lens
@@ -48,6 +49,7 @@ dependencies:
 - servant
 - servant-lucid
 - servant-server
+- sqlite-simple
 - template-haskell
 - text
 - time

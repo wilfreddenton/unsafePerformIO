@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -146,3 +147,7 @@ logAndThrowError :: (MonadLogger m, MonadError e m, ToJSON e) => e -> m a
 logAndThrowError err = withNamespace "error" . withContext err $ do
   error "request could not be handled due to error"
   throwError err
+
+type CanError e m = (MonadError e m, ToJSON e)
+
+type CanPostError e m = (CanError e m, AsPostError e)

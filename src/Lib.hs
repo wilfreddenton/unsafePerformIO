@@ -1,12 +1,13 @@
 module Lib where
 
 import           Control.Lens             ((^.))
+import           Database.SQLite.Simple   (close)
 import           Katip                    (closeScribes)
 import           Lib.App                  (runLoggerT)
 import           Lib.Effects.Logger       (infoKatip, withContextKatip)
-import           Lib.Env                  (AppEnv (AppEnv), ServerEnv, lLogEnv,
-                                           newDbEnv, newLoggerEnv, sePort,
-                                           serverEnv)
+import           Lib.Env                  (AppEnv (AppEnv), ServerEnv, dbConn,
+                                           lLogEnv, newDbEnv, newLoggerEnv,
+                                           sPort, sSqliteDatabase, serverEnv)
 import           Lib.Server               (app)
 import           Network.Wai.Handler.Warp (run)
 import           Protolude
@@ -16,12 +17,13 @@ initialize serverEnv' = bracket makeAppEnv stopApp runApp
   where
     makeAppEnv = do
       loggerEnv <- newLoggerEnv
-      dbEnv <- newDbEnv
+      dbEnv <- newDbEnv $ serverEnv'^.sSqliteDatabase
       pure $ AppEnv serverEnv' loggerEnv dbEnv
     runApp env = do
-      let port = env^.sePort
+      let port = env^.sPort
       liftIO . runLoggerT env . withContextKatip (env^.serverEnv) $ infoKatip "Running"
       run port $ app env
     stopApp env = do
       liftIO . runLoggerT env $ infoKatip "Shutting down gracefully"
+      liftIO . close $ env^.dbConn
       closeScribes $ env^.lLogEnv

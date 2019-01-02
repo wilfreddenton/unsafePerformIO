@@ -9,6 +9,7 @@ import           Data.Aeson.Extended     (ToJSON, encode, genericToJSON, object,
                                           snakeNoPrefix, toJSON, (.=))
 import           Data.Text.Lazy.Builder  (fromText, toLazyText)
 import           Data.Text.Lazy.Encoding (decodeUtf8)
+import           Database.SQLite.Simple  (Connection, open)
 import           Katip                   (ColorStrategy (ColorIfTerminal),
                                           Item (..), ItemFormatter, LogContexts,
                                           LogEnv, LogItem, Namespace,
@@ -19,10 +20,12 @@ import           Katip                   (ColorStrategy (ColorIfTerminal),
                                           toObject, unLogStr)
 import           Katip.Format.Time       (formatAsLogTime)
 import           Protolude               hiding (decodeUtf8)
+import           System.Directory        (doesFileExist)
+import           System.Exit             (exitFailure)
 
 data ServerEnv = ServerEnv {
-  _sePort           :: Int
-, _seSqliteDatabase :: FilePath
+  _sPort           :: Int
+, _sSqliteDatabase :: FilePath
 } deriving Generic
 makeClassy ''ServerEnv
 
@@ -37,7 +40,7 @@ data LoggerEnv = LoggerEnv {
 makeClassy ''LoggerEnv
 
 data DbEnv = DbEnv {
-  _dbConn :: Text
+  _dbConn :: Connection
 }
 makeClassy ''DbEnv
 
@@ -57,8 +60,16 @@ newLoggerEnv = do
   logEnv <- liftIO $ registerScribe "stdout" handleScribe defaultScribeSettings =<< initLogEnv "HSP" "development"
   pure $ LoggerEnv logEnv mempty mempty
 
-newDbEnv :: MonadIO m => m DbEnv
-newDbEnv = pure $ DbEnv "hey"
+newDbEnv :: MonadIO m => FilePath -> m DbEnv
+newDbEnv path = do
+  doesExist <- liftIO $ doesFileExist path
+  case doesExist of
+    False -> do
+      putStrLn $ "no sqlite database found at: " <> path
+      liftIO exitFailure
+    True -> do
+      conn <- liftIO $ open path
+      pure $ DbEnv conn
 
 data AppEnv = AppEnv {
   _appServerEnv :: ServerEnv
