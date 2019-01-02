@@ -10,7 +10,8 @@ import           Data.Aeson.Extended (ToJSON, genericToJSON, object,
 import           Lib.Effects.Logger  (MonadLogger, info, withContext,
                                       withNamespace)
 import           Lib.Effects.Post    (MonadPost, Post, getPostBySlug, getPosts)
-import           Lib.Error           (AsPostError, _PostNotFoundError)
+import           Lib.Error           (AsPostError, logAndThrowError,
+                                      _PostNotFoundError)
 import           Lucid.Extended      (Template (Template))
 import           Protolude
 
@@ -34,11 +35,11 @@ getPostsHandler = withNamespace "getPosts" $ do
   info "request for posts"
   Template "Posts" <$> getPosts
 
-getPostHandler :: (MonadLogger m, MonadPost m, MonadError e m, AsPostError e) => Text -> m (Template Post)
+getPostHandler :: (MonadLogger m, MonadPost m, MonadError e m, AsPostError e, ToJSON e) => Text -> m (Template Post)
 getPostHandler slug = withNamespace "getPost" . withContext (object ["slug" .= slug]) $ do
   info "request for post"
   postM <- getPostBySlug slug
   post <- case postM of
-    Nothing -> throwError $ _PostNotFoundError # slug
+    Nothing -> logAndThrowError $ _PostNotFoundError # slug
     Just p  -> pure $ p
   pure $ Template "Post" post

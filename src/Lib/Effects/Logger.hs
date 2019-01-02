@@ -2,11 +2,16 @@
 
 module Lib.Effects.Logger where
 
-import           Data.Aeson.Extended (ToJSON, toJSON)
-import           Katip               (KatipContext, Namespace (Namespace),
-                                      Severity (..), katipAddContext,
-                                      katipAddNamespace, logStr, logTM)
-import           Lib.Orphans         ()
+import           Crypto.Random.Entropy  (getEntropy)
+import           Data.Aeson.Extended    (ToJSON, toJSON)
+import qualified Data.ByteString.Base16 as B
+import qualified Data.Text              as T
+import qualified Data.Text.Encoding     as T
+import           Katip                  (KatipContext, Namespace (Namespace),
+                                         Severity (..), getKatipNamespace,
+                                         katipAddContext, katipAddNamespace,
+                                         logStr, logTM)
+import           Lib.Orphans            ()
 import           Protolude
 
 -- Typeclass
@@ -47,8 +52,17 @@ infoKatip = logKatip InfoS
 warnKatip :: KatipContext m => Text -> m ()
 warnKatip = logKatip WarningS
 
-withNamespaceKatip :: KatipContext m => Text -> m a -> m a
-withNamespaceKatip namespace = katipAddNamespace (Namespace [namespace])
+withNamespaceKatip :: (KatipContext m) => Text -> m a -> m a
+withNamespaceKatip namespace action = do
+  currentNamespace <- getKatipNamespace
+  baseNamespace <- case currentNamespace of
+        Namespace [] -> do
+          namespaceId <- liftIO $ randText 32
+          pure $ [namespaceId]
+        Namespace ns -> pure $ ns
+  katipAddNamespace (Namespace $ baseNamespace <> [namespace]) action
+  where
+    randText n = fmap (T.take n . T.decodeUtf8 . B.encode) . getEntropy . uncurry (+) $ divMod n 2
 
 withContextKatip :: (KatipContext m, ToJSON b) => b -> m a -> m a
 withContextKatip context = katipAddContext (toJSON context)

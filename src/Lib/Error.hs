@@ -10,6 +10,8 @@ import qualified Data.ByteString     as B
 import qualified Data.Map.Strict     as Map
 import qualified Data.Text           as T
 import qualified Data.Text.Encoding  as T
+import           Lib.Effects.Logger  (MonadLogger, error, withContext,
+                                      withNamespace)
 import           Lucid.Extended      (HtmlT, Template (Template), ToHtml, h3_,
                                       p_, renderBS, span_, toHtml, toHtmlRaw)
 import           Network.HTTP.Types  (Status (Status), hAccept, hContentType,
@@ -139,3 +141,8 @@ toHttpError req appErr =
         Nothing -> jsonTuple
         Just accept  -> if B.isInfixOf "text/html" accept then htmlTuple else jsonTuple
   in ServantErr (statusCode) (show $ statusMessage) (toBS appErr) [contentTypeHeader]
+
+logAndThrowError :: (MonadLogger m, MonadError e m, ToJSON e) => e -> m a
+logAndThrowError err = withNamespace "error" . withContext err $ do
+  error "request could not be handled due to error"
+  throwError err
