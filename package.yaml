@@ -39,6 +39,7 @@ dependencies:
 - containers
 - cryptonite
 - directory
+- h-gpgme
 - http-types
 - katip
 - lens
