@@ -58,7 +58,7 @@ customJsonFormatter _color _verb Item{..} = fromText . toStrict . decodeUtf8 $ e
 newLoggerEnv :: MonadIO m => m LoggerEnv
 newLoggerEnv = do
   handleScribe <- liftIO $ mkHandleScribeWithFormatter customJsonFormatter ColorIfTerminal stdout DebugS V3
-  logEnv <- liftIO $ registerScribe "stdout" handleScribe defaultScribeSettings =<< initLogEnv "HSP" "development"
+  logEnv <- liftIO $ registerScribe "stdout" handleScribe defaultScribeSettings =<< initLogEnv "IO" "development"
   pure $ LoggerEnv logEnv mempty mempty
 
 newDbEnv :: MonadIO m => FilePath -> m DbEnv
