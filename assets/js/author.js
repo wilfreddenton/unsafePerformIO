@@ -4,13 +4,13 @@ function main() {
 
   var refs = {
     submit: document.getElementById('submit'),
-    privateKey: document.getElementById('private-key')
+    privateKey: document.getElementById('private-key'),
+    postForm: document.getElementById('post-form')
   };
 
   refs.submit.addEventListener('click', function (e) {
     e.preventDefault();
     privateKey = refs.privateKey.value;
-    console.log(privateKey);
   });
 }
 

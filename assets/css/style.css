@@ -133,13 +133,15 @@ input, textarea {
   padding: 0.5rem;
   border: 1px solid black;
   margin: 1rem 0;
+  display: block;
+  min-width: 100%;
+  max-width: 100%;
 }
 
 textarea {
   display: block;
-  width: 100%;
   font-family: 'AT', monospace;
-  resize: none;
+  min-height: 100px;
 }
 
 a.post-link {

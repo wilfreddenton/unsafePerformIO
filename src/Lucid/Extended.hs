@@ -6,6 +6,7 @@ module Lucid.Extended (
 , row_
 , col_
 , colSm4_
+, colSm6_
 , colSm8_
 , colMd4_
 , colMd8_
@@ -36,6 +37,9 @@ col_ = termWith "div" [class_ " col "]
 
 colSm4_ :: Term arg result => arg -> result
 colSm4_ = termWith "div" [class_ " col-sm-4 "]
+
+colSm6_ :: Term arg result => arg -> result
+colSm6_ = termWith "div" [class_ " col-sm-6 "]
 
 colSm8_ :: Term arg result => arg -> result
 colSm8_ = termWith "div" [class_ " col-sm-8 "]
@@ -99,8 +103,12 @@ instance ToHtml AuthorTemplate where
       script_ [src_ "/static/js/openpgp.min.js"] ("" :: Text)
       script_ [src_ "/static/js/author.js"] ("" :: Text)
     body_ $ do
-      container_ . row_ $ do
-        col_ $ do
+      container_ $ do
+        row_ . col_ $ do
           h3_ "PGP Private Key"
           textarea_ [id_ "private-key", type_ "text", name_ "private-key", placeholder_ "PGP Private Key"] ""
+        row_ . col_ . form_ [id_ "post-form"] $ do
+          h3_ "Create Post"
+          input_ [type_ "text", name_ "title", placeholder_ "Title"]
+          textarea_ [type_ "text", name_ "body", placeholder_ "Body"] ""
           button_ [id_ "submit", href_ ""] "submit"
