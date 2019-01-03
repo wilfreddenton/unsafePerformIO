@@ -1,3 +1,3 @@
-# Changelog for haskell-starter-pack
+# Changelog for unsafePerformIO
 
 ## Unreleased changes

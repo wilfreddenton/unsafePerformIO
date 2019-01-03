@@ -1,0 +1,153 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: d03355a0b3bb69cb94b7bbb27a636b690df664386d2490c0799cbe61cdbaa52f
+
+name:           haskell-starter-pack
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/haskell-starter-pack#readme>
+homepage:       https://github.com/githubuser/haskell-starter-pack#readme
+bug-reports:    https://github.com/githubuser/haskell-starter-pack/issues
+author:         Wilfred Denton
+maintainer:     dentonw3@gmail.com
+copyright:      2018 Wilfred Denton
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/haskell-starter-pack
+
+library
+  exposed-modules:
+      Data.Aeson.Extended
+      Lib
+      Lib.App
+      Lib.Db
+      Lib.Effects.Author
+      Lib.Effects.Logger
+      Lib.Effects.Post
+      Lib.Effects.Time
+      Lib.Env
+      Lib.Error
+      Lib.Orphans
+      Lib.Server
+      Lib.Server.Api
+      Lib.Server.Posts
+      Lucid.Extended
+  other-modules:
+      Paths_haskell_starter_pack
+  hs-source-dirs:
+      src
+  default-extensions: NoImplicitPrelude OverloadedStrings
+  ghc-options: -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Wall -Werror
+  build-depends:
+      aeson
+    , aeson-casing
+    , base >=4.7 && <5
+    , base16-bytestring
+    , bytestring
+    , containers
+    , cryptonite
+    , directory
+    , h-gpgme
+    , http-types
+    , katip
+    , lens
+    , lucid
+    , mmark
+    , optparse-applicative
+    , protolude
+    , servant
+    , servant-lucid
+    , servant-server
+    , sqlite-simple
+    , template-haskell
+    , text
+    , time
+    , wai
+    , warp
+  default-language: Haskell2010
+
+executable haskell-starter-pack
+  main-is: Main.hs
+  other-modules:
+      Cli
+      Paths_haskell_starter_pack
+  hs-source-dirs:
+      app
+  default-extensions: NoImplicitPrelude OverloadedStrings
+  ghc-options: -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , aeson-casing
+    , base >=4.7 && <5
+    , base16-bytestring
+    , bytestring
+    , containers
+    , cryptonite
+    , directory
+    , h-gpgme
+    , haskell-starter-pack
+    , http-types
+    , katip
+    , lens
+    , lucid
+    , mmark
+    , optparse-applicative
+    , protolude
+    , servant
+    , servant-lucid
+    , servant-server
+    , sqlite-simple
+    , template-haskell
+    , text
+    , time
+    , wai
+    , warp
+  default-language: Haskell2010
+
+test-suite haskell-starter-pack-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_haskell_starter_pack
+  hs-source-dirs:
+      test
+  default-extensions: NoImplicitPrelude OverloadedStrings
+  ghc-options: -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , aeson-casing
+    , base >=4.7 && <5
+    , base16-bytestring
+    , bytestring
+    , containers
+    , cryptonite
+    , directory
+    , h-gpgme
+    , haskell-starter-pack
+    , http-types
+    , katip
+    , lens
+    , lucid
+    , mmark
+    , optparse-applicative
+    , protolude
+    , servant
+    , servant-lucid
+    , servant-server
+    , sqlite-simple
+    , template-haskell
+    , text
+    , time
+    , wai
+    , warp
+  default-language: Haskell2010
