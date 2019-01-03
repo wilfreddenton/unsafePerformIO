@@ -59,7 +59,7 @@ withNamespaceKatip namespace action = do
         Namespace [] -> do
           namespaceId <- liftIO $ randText 32
           pure $ [namespaceId]
-        Namespace ns -> pure $ ns
+        Namespace _ -> pure []
   katipAddNamespace (Namespace $ baseNamespace <> [namespace]) action
   where
     randText n = T.take n . T.decodeUtf8 . B.encode <$> (getEntropy . uncurry (+) $ divMod n 2)

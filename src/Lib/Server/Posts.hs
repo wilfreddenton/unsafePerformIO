@@ -5,14 +5,19 @@
 module Lib.Server.Posts where
 
 import           Control.Lens        (( # ))
+import           Crypto.Gpgme        (Protocol (OpenPGP), errorString,
+                                      verifyDetached, withCtx)
 import           Data.Aeson.Extended (FromJSON, ToJSON, genericParseJSON,
                                       genericToJSON, object, parseJSON,
                                       snakeNoPrefix, toJSON, (.=))
+import qualified Data.Text.Encoding  as T
 import           Lib.Effects.Logger  (MonadLogger, info, withContext,
                                       withNamespace)
 import           Lib.Effects.Post    (MonadPost, Post, getPostBySlug, getPosts)
-import           Lib.Error           (CanPostError, logAndThrowError,
-                                      _PostNotFoundError)
+import           Lib.Error           (CanApiError, CanPostError,
+                                      logAndThrowError, _PostNotFoundError,
+                                      _UnauthorizedError)
+import           Lib.Server.Auth     (Signed (Signed))
 import           Lucid.Extended      (Template (Template))
 import           Protolude
 
@@ -48,7 +53,15 @@ getPostHandler slug = withNamespace "getPost" . withContext (object ["slug" .= s
     Just p  -> pure $ p
   pure $ Template "Post" post
 
-createPostHandler :: (MonadLogger m) => Maybe Text -> PostPayload -> m ()
-createPostHandler _ _ = withNamespace "createPost" $ do
+createPostHandler :: (MonadLogger m, MonadIO m, CanApiError e m) => Signed PostPayload -> m ()
+createPostHandler (Signed sig PostPayload {..}) = withNamespace "createPost" . withContext (object ["title" .= ppTitle]) $ do
   info "request to create post"
-  pure ()
+  authorized <- liftIO $ withCtx "/home/wilfred/Documents/unsafePerformIO/.gnupg" "C" OpenPGP $ \ctx -> do
+    resultE <- verifyDetached ctx (T.encodeUtf8 sig) (T.encodeUtf8 $ ppTitle <> ppBody)
+    pure $ case resultE of
+      Left _            -> False
+      Right [(e, _, _)] -> if errorString e == "Success" then True else False
+      Right _           -> False
+  case authorized of
+    False -> logAndThrowError $ _UnauthorizedError # ()
+    True  -> pure ()

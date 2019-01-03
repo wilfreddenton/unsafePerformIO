@@ -16,8 +16,8 @@ import           Lib.Effects.Logger  (MonadLogger, error, withContext,
 import           Lucid.Extended      (HtmlT, Template (Template), ToHtml, h3_,
                                       p_, renderBS, span_, toHtml, toHtmlRaw)
 import           Network.HTTP.Types  (Status (Status), hAccept, hContentType,
-                                      status400, status404, status500,
-                                      statusCode, statusMessage)
+                                      status400, status401, status404,
+                                      status500, statusCode, statusMessage)
 import           Network.Wai         (Request, requestHeaders)
 import           Protolude
 import           Servant             (ServantErr (ServantErr))
@@ -41,16 +41,16 @@ toHtml' err = do
   p_ . toHtml $ errorMessage err
   where status = httpStatus err
 
-data ApiError = NotFoundError Text | OtherError
+data ApiError = NotFoundError Text | UnauthorizedError
 makeClassyPrisms ''ApiError
 
 instance HttpStatus ApiError where
   httpStatus (NotFoundError _) = status404
-  httpStatus OtherError        = status500
+  httpStatus UnauthorizedError = status401
 
 instance ErrorMessage ApiError where
   errorMessage (NotFoundError route) = "No such route: " <> route
-  errorMessage OtherError            = "undefined"
+  errorMessage UnauthorizedError     = "Unauthorized request"
 
 instance ToJSON ApiError where
   toJSON = toJSON'
@@ -150,6 +150,8 @@ logAndThrowError err = withNamespace "error" . withContext err $ do
   throwError err
 
 type CanError e m = (MonadError e m, ToJSON e)
+
+type CanApiError e m = (CanError e m, AsApiError e)
 
 type CanPostError e m = (CanError e m, AsPostError e)
 

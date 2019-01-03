@@ -90,11 +90,11 @@ instance ToHtml a => ToHtml (Template a) where
                  ]
           button_ [id_ "view-source", href_ "", (target_) "_blank"] "</>"
 
-data AuthorTemplate = AuthorTemplate
+data AuthorTemplate = AuthorTemplate Text
 
 instance ToHtml AuthorTemplate where
   toHtmlRaw = toHtml
-  toHtml AuthorTemplate = doctypehtml_ $ do
+  toHtml (AuthorTemplate pgpKey) = doctypehtml_ $ do
     head_ $ do
       title_ "unsafePerformIO | author"
       meta_ [charset_ "utf-8"]
@@ -102,11 +102,13 @@ instance ToHtml AuthorTemplate where
       link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/css/style.css"]
       script_ [src_ "/static/js/openpgp.min.js"] ("" :: Text)
       script_ [src_ "/static/js/author.js"] ("" :: Text)
+      script_ $ "window.PUBLIC_KEY = `" <> pgpKey <> "`"
     body_ $ do
       container_ $ do
         row_ . col_ $ do
           h3_ "PGP Private Key"
           textarea_ [id_ "private-key", type_ "text", name_ "private-key", placeholder_ "PGP Private Key"] ""
+          input_ [id_ "passphrase", type_ "text", name_ "passphrase", placeholder_ "Passphrase"]
         row_ . col_ . form_ [id_ "post-form"] $ do
           h3_ "Create Post"
           input_ [type_ "text", name_ "title", placeholder_ "Title"]

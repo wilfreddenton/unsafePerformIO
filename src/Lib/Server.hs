@@ -13,8 +13,9 @@ import           Data.Proxy            (Proxy (Proxy))
 import qualified Data.Text             as T
 import qualified Data.Text.Encoding    as T
 import           Lib.App               (App, appToHandler, runLoggerT)
-import           Lib.Effects.Author    (About, Contact, MonadAuthor, PgpKey,
-                                        getAbout, getContact, getPgpKey)
+import           Lib.Effects.Author    (About, Contact, MonadAuthor,
+                                        PgpKey (PgpKey), getAbout, getContact,
+                                        getPgpKey)
 import           Lib.Effects.Logger    (MonadLogger, info, infoKatip,
                                         withContextKatip, withNamespace,
                                         withNamespaceKatip)
@@ -47,8 +48,11 @@ contactHandler = baseHandler "Contact" getContact
 pgpKeyHandler :: CanAuthor m => m (Template PgpKey)
 pgpKeyHandler = baseHandler "PGP" getPgpKey
 
-authorHandler :: (MonadLogger m) => m AuthorTemplate
-authorHandler = pure AuthorTemplate
+authorHandler :: CanAuthor m => m AuthorTemplate
+authorHandler = withNamespace "author" $ do
+  info $ "request for author page"
+  PgpKey pgpKey <- getPgpKey
+  pure $ AuthorTemplate pgpKey
 
 notFoundHandler :: (HasLoggerEnv a) => a -> ServerT Raw m
 notFoundHandler env = Tagged $ \req res -> do

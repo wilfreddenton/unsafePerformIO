@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 74cd84e52daa469af584524d05314ee02725d8d4da050812b3949af1ea24fbeb
+-- hash: 3ad8b35a3d4b92592cc05f2eb8e7801b740ce7947c55cab2c4f9a2e444ec99fb
 
 name:           unsafePerformIO
 version:        0.1.0.0
@@ -40,6 +40,7 @@ library
       Lib.Orphans
       Lib.Server
       Lib.Server.Api
+      Lib.Server.Auth
       Lib.Server.Posts
       Lucid.Extended
   other-modules:
