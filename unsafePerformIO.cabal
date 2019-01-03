@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3ad8b35a3d4b92592cc05f2eb8e7801b740ce7947c55cab2c4f9a2e444ec99fb
+-- hash: a346b8405fe7d43c838dfbeb88c698b04ca5a6fa38d8ece09f010b626448d036
 
 name:           unsafePerformIO
 version:        0.1.0.0
@@ -55,6 +55,7 @@ library
     , base >=4.7 && <5
     , base16-bytestring
     , bytestring
+    , clock
     , containers
     , cryptonite
     , directory
@@ -74,6 +75,7 @@ library
     , text
     , time
     , wai
+    , wai-middleware-throttle
     , warp
   default-language: Haskell2010
 
@@ -92,6 +94,7 @@ executable unsafe-perform-io
     , base >=4.7 && <5
     , base16-bytestring
     , bytestring
+    , clock
     , containers
     , cryptonite
     , directory
@@ -112,6 +115,7 @@ executable unsafe-perform-io
     , time
     , unsafePerformIO
     , wai
+    , wai-middleware-throttle
     , warp
   default-language: Haskell2010
 
@@ -130,6 +134,7 @@ test-suite unsafe-perform-io-test
     , base >=4.7 && <5
     , base16-bytestring
     , bytestring
+    , clock
     , containers
     , cryptonite
     , directory
@@ -150,5 +155,6 @@ test-suite unsafe-perform-io-test
     , time
     , unsafePerformIO
     , wai
+    , wai-middleware-throttle
     , warp
   default-language: Haskell2010

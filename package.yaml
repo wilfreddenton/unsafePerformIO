@@ -36,6 +36,7 @@ dependencies:
 - aeson-casing
 - base16-bytestring
 - bytestring
+- clock
 - containers
 - cryptonite
 - directory
@@ -55,6 +56,7 @@ dependencies:
 - text
 - time
 - wai
+- wai-middleware-throttle
 - warp
 
 library:
