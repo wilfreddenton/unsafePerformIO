@@ -23,7 +23,8 @@ import           Lib.Error             (errorMessage, toHttpError,
                                         _NotFoundError)
 import           Lib.Server.Api        (API)
 import           Lib.Server.Posts      (getPostHandler, getPostsHandler)
-import           Lucid.Extended        (Template (Template))
+import           Lucid.Extended        (AuthorTemplate (AuthorTemplate),
+                                        Template (Template))
 import           Network.HTTP.Types    (mkStatus)
 import           Network.Wai           (Application, rawPathInfo, responseLBS)
 import           Protolude             hiding (log)
@@ -31,19 +32,22 @@ import           Servant
 
 type CanAuthor m = (MonadLogger m, MonadAuthor m)
 
-authorHandler :: (CanAuthor m) => Text -> m a -> m (Template a)
-authorHandler title action = withNamespace (T.toLower title) $ do
+baseHandler :: (CanAuthor m) => Text -> m a -> m (Template a)
+baseHandler title action = withNamespace (T.toLower title) $ do
   info $ "request for " <> title
   Template title <$> action
 
 aboutHandler :: CanAuthor m => m (Template About)
-aboutHandler = authorHandler "About" getAbout
+aboutHandler = baseHandler "About" getAbout
 
 contactHandler :: CanAuthor m => m (Template Contact)
-contactHandler = authorHandler "Contact" getContact
+contactHandler = baseHandler "Contact" getContact
 
 pgpKeyHandler :: CanAuthor m => m (Template PgpKey)
-pgpKeyHandler = authorHandler "PGP" getPgpKey
+pgpKeyHandler = baseHandler "PGP" getPgpKey
+
+authorHandler :: (MonadLogger m) => m AuthorTemplate
+authorHandler = pure AuthorTemplate
 
 notFoundHandler :: (HasLoggerEnv a) => a -> ServerT Raw m
 notFoundHandler env = Tagged $ \req res -> do
@@ -63,6 +67,7 @@ serverT env =
   aboutHandler :<|>
   contactHandler :<|>
   pgpKeyHandler :<|>
+  authorHandler :<|>
   serveDirectoryWebApp "assets" :<|>
   notFoundHandler env
 
