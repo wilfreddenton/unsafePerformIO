@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds    #-}
 {-# LANGUAGE ExplicitNamespaces #-}
 {-# LANGUAGE RecordWildCards    #-}
 
@@ -9,6 +10,7 @@ import           Control.Lens          (( # ))
 import           Data.Aeson.Extended   (object, (.=))
 import qualified Data.ByteString.Char8 as BS
 import           Data.Proxy            (Proxy (Proxy))
+import qualified Data.Text             as T
 import qualified Data.Text.Encoding    as T
 import           Lib.App               (App, appToHandler, runLoggerT)
 import           Lib.Effects.Author    (About, Contact, MonadAuthor, PgpKey,
@@ -27,20 +29,21 @@ import           Network.Wai           (Application, rawPathInfo, responseLBS)
 import           Protolude             hiding (log)
 import           Servant
 
-aboutHandler :: (MonadLogger m, MonadAuthor m) => m (Template About)
-aboutHandler = withNamespace "about" $ do
-  info "request for about"
-  Template "About" <$> getAbout
+type CanAuthor m = (MonadLogger m, MonadAuthor m)
 
-contactHandler :: (MonadLogger m, MonadAuthor m) => m (Template Contact)
-contactHandler = withNamespace "contact" $ do
-  info "request for contact"
-  Template "Contact" <$> getContact
+authorHandler :: (CanAuthor m) => Text -> m a -> m (Template a)
+authorHandler title action = withNamespace (T.toLower title) $ do
+  info $ "request for " <> title
+  Template title <$> action
 
-pgpKeyHandler :: (MonadLogger m, MonadAuthor m) => m (Template PgpKey)
-pgpKeyHandler = withNamespace "pgp" $ do
-  info "request for pgp"
-  Template "PGP Key" <$> getPgpKey
+aboutHandler :: CanAuthor m => m (Template About)
+aboutHandler = authorHandler "About" getAbout
+
+contactHandler :: CanAuthor m => m (Template Contact)
+contactHandler = authorHandler "Contact" getContact
+
+pgpKeyHandler :: CanAuthor m => m (Template PgpKey)
+pgpKeyHandler = authorHandler "PGP" getPgpKey
 
 notFoundHandler :: (HasLoggerEnv a) => a -> ServerT Raw m
 notFoundHandler env = Tagged $ \req res -> do
