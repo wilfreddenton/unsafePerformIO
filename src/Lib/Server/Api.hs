@@ -4,8 +4,8 @@
 
 module Lib.Server.Api where
 
+import           Lib.Effects.Author (About, Contact, PgpKey)
 import           Lib.Effects.Post   (Post)
-import           Lib.Server.Pages   (About, Contact, PgpKey)
 import           Lucid.Extended     (Template)
 import           Protolude
 import           Servant            ((:<|>), (:>), Capture, Get, JSON, Raw)

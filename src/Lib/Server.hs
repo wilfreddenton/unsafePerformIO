@@ -11,19 +11,36 @@ import qualified Data.ByteString.Char8 as BS
 import           Data.Proxy            (Proxy (Proxy))
 import qualified Data.Text.Encoding    as T
 import           Lib.App               (App, appToHandler, runLoggerT)
-import           Lib.Effects.Logger    (infoKatip, withContextKatip,
+import           Lib.Effects.Author    (About, Contact, MonadAuthor, PgpKey,
+                                        getAbout, getContact, getPgpKey)
+import           Lib.Effects.Logger    (MonadLogger, info, infoKatip,
+                                        withContextKatip, withNamespace,
                                         withNamespaceKatip)
 import           Lib.Env               (AppEnv, HasLoggerEnv)
 import           Lib.Error             (errorMessage, toHttpError,
                                         _NotFoundError)
 import           Lib.Server.Api        (API)
-import           Lib.Server.Pages      (aboutHandler, contactHandler,
-                                        pgpKeyHandler)
 import           Lib.Server.Posts      (getPostHandler, getPostsHandler)
+import           Lucid.Extended        (Template (Template))
 import           Network.HTTP.Types    (mkStatus)
 import           Network.Wai           (Application, rawPathInfo, responseLBS)
 import           Protolude             hiding (log)
 import           Servant
+
+aboutHandler :: (MonadLogger m, MonadAuthor m) => m (Template About)
+aboutHandler = withNamespace "about" $ do
+  info "request for about"
+  Template "About" <$> getAbout
+
+contactHandler :: (MonadLogger m, MonadAuthor m) => m (Template Contact)
+contactHandler = withNamespace "contact" $ do
+  info "request for contact"
+  Template "Contact" <$> getContact
+
+pgpKeyHandler :: (MonadLogger m, MonadAuthor m) => m (Template PgpKey)
+pgpKeyHandler = withNamespace "pgp" $ do
+  info "request for pgp"
+  Template "PGP Key" <$> getPgpKey
 
 notFoundHandler :: (HasLoggerEnv a) => a -> ServerT Raw m
 notFoundHandler env = Tagged $ \req res -> do
