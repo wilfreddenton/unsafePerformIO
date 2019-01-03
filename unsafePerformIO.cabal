@@ -4,13 +4,13 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d03355a0b3bb69cb94b7bbb27a636b690df664386d2490c0799cbe61cdbaa52f
+-- hash: 74cd84e52daa469af584524d05314ee02725d8d4da050812b3949af1ea24fbeb
 
-name:           haskell-starter-pack
+name:           unsafePerformIO
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/haskell-starter-pack#readme>
-homepage:       https://github.com/githubuser/haskell-starter-pack#readme
-bug-reports:    https://github.com/githubuser/haskell-starter-pack/issues
+description:    Please see the README on GitHub at <https://github.com/wilfreddenton/unsafePerformIO#readme>
+homepage:       https://github.com/wilfreddenton/unsafePerformIO#readme
+bug-reports:    https://github.com/wilfreddenton/unsafePerformIO/issues
 author:         Wilfred Denton
 maintainer:     dentonw3@gmail.com
 copyright:      2018 Wilfred Denton
@@ -23,7 +23,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/haskell-starter-pack
+  location: https://github.com/wilfreddenton/unsafePerformIO
 
 library
   exposed-modules:
@@ -43,7 +43,7 @@ library
       Lib.Server.Posts
       Lucid.Extended
   other-modules:
-      Paths_haskell_starter_pack
+      Paths_unsafePerformIO
   hs-source-dirs:
       src
   default-extensions: NoImplicitPrelude OverloadedStrings
@@ -76,11 +76,11 @@ library
     , warp
   default-language: Haskell2010
 
-executable haskell-starter-pack
+executable unsafe-perform-io
   main-is: Main.hs
   other-modules:
       Cli
-      Paths_haskell_starter_pack
+      Paths_unsafePerformIO
   hs-source-dirs:
       app
   default-extensions: NoImplicitPrelude OverloadedStrings
@@ -95,7 +95,6 @@ executable haskell-starter-pack
     , cryptonite
     , directory
     , h-gpgme
-    , haskell-starter-pack
     , http-types
     , katip
     , lens
@@ -110,15 +109,16 @@ executable haskell-starter-pack
     , template-haskell
     , text
     , time
+    , unsafePerformIO
     , wai
     , warp
   default-language: Haskell2010
 
-test-suite haskell-starter-pack-test
+test-suite unsafe-perform-io-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Paths_haskell_starter_pack
+      Paths_unsafePerformIO
   hs-source-dirs:
       test
   default-extensions: NoImplicitPrelude OverloadedStrings
@@ -133,7 +133,6 @@ test-suite haskell-starter-pack-test
     , cryptonite
     , directory
     , h-gpgme
-    , haskell-starter-pack
     , http-types
     , katip
     , lens
@@ -148,6 +147,7 @@ test-suite haskell-starter-pack-test
     , template-haskell
     , text
     , time
+    , unsafePerformIO
     , wai
     , warp
   default-language: Haskell2010

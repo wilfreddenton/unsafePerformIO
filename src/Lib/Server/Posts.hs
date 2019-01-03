@@ -5,7 +5,8 @@
 module Lib.Server.Posts where
 
 import           Control.Lens        (( # ))
-import           Data.Aeson.Extended (ToJSON, genericToJSON, object,
+import           Data.Aeson.Extended (FromJSON, ToJSON, genericParseJSON,
+                                      genericToJSON, object, parseJSON,
                                       snakeNoPrefix, toJSON, (.=))
 import           Lib.Effects.Logger  (MonadLogger, info, withContext,
                                       withNamespace)
@@ -22,6 +23,9 @@ data PostPayload = PostPayload {
 
 instance ToJSON PostPayload where
   toJSON = genericToJSON snakeNoPrefix
+
+instance FromJSON PostPayload where
+  parseJSON = genericParseJSON snakeNoPrefix
 
 -- newPost :: MonadTime m => PostPayload -> m Post
 -- newPost PostPayload {..} = do
@@ -43,3 +47,8 @@ getPostHandler slug = withNamespace "getPost" . withContext (object ["slug" .= s
     Nothing -> logAndThrowError $ _PostNotFoundError # slug
     Just p  -> pure $ p
   pure $ Template "Post" post
+
+createPostHandler :: (MonadLogger m) => Maybe Text -> PostPayload -> m ()
+createPostHandler _ _ = withNamespace "createPost" $ do
+  info "request to create post"
+  pure ()

@@ -10,7 +10,7 @@ import           Protolude
 
 main :: IO ()
 main = do
-  withCtx "/home/wilfred/Documents/haskell-starter-pack/.gnupg" "C" OpenPGP $ \ctx -> do
+  withCtx "/home/wilfred/Documents/unsafePerformIO/.gnupg" "C" OpenPGP $ \ctx -> do
     ks <- listKeys ctx NoSecret
     putStrLn $ (show $ length ks :: String)
   initialize =<< execParser opts
