@@ -16,8 +16,8 @@ import           Data.Time              (UTCTime (UTCTime), defaultTimeLocale,
                                          formatTime, fromGregorian,
                                          secondsToDiffTime)
 import           Database.SQLite.Simple (FromRow, NamedParam ((:=)), ToRow,
-                                         field, fromRow, queryNamed, query_,
-                                         toRow)
+                                         execute, field, fromRow, queryNamed,
+                                         query_, toRow)
 import           Lib.Db                 (CanDb, liftDbAction)
 import           Lib.Effects.Logger     (MonadLogger)
 import           Lib.Env                (dConn)
@@ -30,7 +30,7 @@ import           Protolude
 
 -- Type
 data Post = Post {
-  pId        :: Int
+  pId        :: Maybe Int
 , pSlug      :: Text
 , pTitle     :: Text
 , pCreatedAt :: UTCTime
@@ -41,7 +41,7 @@ instance FromRow Post where
   fromRow = Post <$> field <*> field <*> field <*> field <*> field
 
 instance ToRow Post where
-  toRow Post {..} = toRow (pId, pSlug, pTitle, pCreatedAt, pBody)
+  toRow Post {..} = toRow (pSlug, pTitle, pCreatedAt, pBody)
 
 instance ToJSON Post where
   toJSON = genericToJSON snakeNoPrefix
@@ -67,14 +67,22 @@ instance ToHtml [Post] where
             colSm4_ [class_ "post-list-date"] $ do
               span_ . toHtml . formatTime defaultTimeLocale "%b %d, %_Y" $ pCreatedAt
 
+makeSlug :: Text -> UTCTime -> Text
+makeSlug title createdAt = T.pack createdAtStr <> "-" <> modifiedTitle
+  where replaceInvalidChar c = if isAlphaNum c then c else ' '
+        modifiedTitle = T.intercalate "-" . T.words . T.toLower $ T.map replaceInvalidChar title
+        createdAtStr = formatTime defaultTimeLocale "%_Y-%m-%d" createdAt
+
 -- Typeclass
 class Monad m => MonadPost m where
   getPosts :: m [Post]
   getPostBySlug :: Text -> m (Maybe Post)
+  createPost :: Post -> m ()
 
 -- Implementations
 
 -- SQLite
+
 getPostsSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => m [Post]
 getPostsSqlite = do
   conn <- view dConn
@@ -88,14 +96,16 @@ getPostBySlugSqlite slug = do
     []  -> Nothing
     p:_ -> Just p
 
+createPostSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => Post -> m ()
+createPostSqlite post = do
+  conn <- view dConn
+  liftDbAction (execute conn "INSERT INTO posts (slug, title, created_at, body) VALUES (?, ?, ?, ?)" post)
+
 -- Pure
+
 postsMap :: Map Text Post
-postsMap = Map.fromList . fmap makePost $ zip [1..] postData
+postsMap = Map.fromList . fmap makePost $ zip (repeat Nothing) postData
   where
-    makeSlug title createdAt =
-      let createdAtStr = formatTime defaultTimeLocale "%_Y-%m-%d" createdAt
-          modifiedTitle = T.intercalate "-" . T.words . T.toLower $ T.map (\c -> if isAlphaNum c then c else ' ') title
-      in T.pack createdAtStr <> "-" <> modifiedTitle
     makePost (id, (title, createdAt, body)) =
       let slug = makeSlug title createdAt
       in (slug, Post id slug title createdAt body)

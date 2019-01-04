@@ -11,12 +11,15 @@ import           Data.Aeson.Extended (FromJSON, ToJSON, genericParseJSON,
 import           Lib.Effects.Auth    (MonadAuth, authorize)
 import           Lib.Effects.Logger  (MonadLogger, info, withContext,
                                       withNamespace)
-import           Lib.Effects.Post    (MonadPost, Post, getPostBySlug, getPosts)
+import           Lib.Effects.Post    (MonadPost, Post (Post), createPost,
+                                      getPostBySlug, getPosts, makeSlug)
+import           Lib.Effects.Time    (MonadTime, now)
 import           Lib.Error           (CanPostError, logAndThrow,
                                       _PostNotFoundError)
 import           Lib.Server.Auth     (Signed (Signed))
 import           Lucid.Extended      (Template (Template))
 import           Protolude
+import           Servant             (NoContent (NoContent))
 
 data PostPayload = PostPayload {
   ppTitle :: Text
@@ -28,13 +31,6 @@ instance ToJSON PostPayload where
 
 instance FromJSON PostPayload where
   parseJSON = genericParseJSON snakeNoPrefix
-
--- newPost :: MonadTime m => PostPayload -> m Post
--- newPost PostPayload {..} = do
---   createdAt <- now
---   pure $ Post makeSlug ppTitle createdAt ppBody
---   where
---     makeSlug = ""
 
 getPostsHandler :: (MonadLogger m, MonadPost m) => m (Template [Post])
 getPostsHandler = withNamespace "getPosts" $ do
@@ -50,7 +46,11 @@ getPostHandler slug = withNamespace "getPost" . withContext (object ["slug" .= s
     Just p  -> pure $ p
   pure $ Template "Post" post
 
-createPostHandler :: (MonadLogger m, MonadAuth m) => Signed PostPayload -> m ()
+createPostHandler :: (MonadLogger m, MonadTime m, MonadPost m, MonadAuth m) => Signed PostPayload -> m NoContent
 createPostHandler (Signed sig PostPayload {..}) = withNamespace "createPost" . withContext (object ["title" .= ppTitle]) $ do
   info "request to create post"
   authorize sig $ ppTitle <> ppBody
+  createdAt <- now
+  let slug = makeSlug ppTitle createdAt
+  createPost $ Post Nothing ppTitle slug createdAt ppBody
+  pure NoContent

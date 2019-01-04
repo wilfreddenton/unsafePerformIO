@@ -12,9 +12,9 @@ import           Lib.Effects.Author (MonadAuthor, getAbout, getAboutSqlite,
 import           Lib.Effects.Logger (MonadLogger (..), debugKatip, errorKatip,
                                      infoKatip, warnKatip, withContextKatip,
                                      withNamespaceKatip)
-import           Lib.Effects.Post   (MonadPost, getPostBySlug,
-                                     getPostBySlugSqlite, getPosts,
-                                     getPostsSqlite)
+import           Lib.Effects.Post   (MonadPost, createPost, createPostSqlite,
+                                     getPostBySlug, getPostBySlugSqlite,
+                                     getPosts, getPostsSqlite)
 import           Lib.Effects.Random (getRandomBytesIO)
 import           Lib.Effects.Time   (MonadTime, now, nowIO)
 import           Lib.Env            (AppEnv, HasLoggerEnv, lContext, lLogEnv,
@@ -49,6 +49,7 @@ instance MonadAuth App where
 instance MonadPost App where
   getPosts = getPostsSqlite
   getPostBySlug = getPostBySlugSqlite
+  createPost = createPostSqlite
 
 instance MonadAuthor App where
   getAbout = getAboutSqlite

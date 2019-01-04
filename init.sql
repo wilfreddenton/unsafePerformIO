@@ -20,8 +20,3 @@ CREATE TABLE contact (
        facebook_messenger VARCHAR(280),
        instagram VARCHAR(280)
 );
-
-CREATE TABLE pgp (
-       id PRIMARY KEY,
-       pgp_key TEXT NOT NULL
-);

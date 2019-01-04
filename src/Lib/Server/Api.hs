@@ -11,8 +11,8 @@ import           Lib.Server.Auth    (Signed)
 import           Lib.Server.Posts   (PostPayload)
 import           Lucid.Extended     (AuthorTemplate, Template)
 import           Protolude
-import           Servant            ((:<|>), (:>), Capture, Get, JSON, Post,
-                                     Raw, ReqBody)
+import           Servant            ((:<|>), (:>), Capture, Get, JSON,
+                                     NoContent, Post, Raw, ReqBody)
 import           Servant.HTML.Lucid (HTML)
 
 type GetPosts = Get '[JSON, HTML] (Template [P.Post])
@@ -21,7 +21,7 @@ type API = GetPosts :<|>
   "posts" :> (
     GetPosts :<|>
     Capture "slug" Text :> Get '[JSON, HTML] (Template P.Post) :<|>
-    ReqBody '[JSON] (Signed PostPayload) :> Post '[JSON] ()
+    ReqBody '[JSON] (Signed PostPayload) :> Post '[JSON] NoContent
   ) :<|>
   "about" :> Get '[JSON, HTML] (Template About) :<|>
   "contact" :> Get '[JSON, HTML] (Template Contact) :<|>
