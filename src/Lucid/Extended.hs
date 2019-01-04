@@ -71,7 +71,10 @@ instance ToHtml a => ToHtml (Template a) where
       container_ . row_ $ do
         colMd4_ . nav_ $ do
           h1_ [id_ "title"] $ button_ [href_ "/"] "unsafePerformIO"
-          p_ "[ Author: Wilfred Denton ]"
+          p_ $ do
+            span_ "[ Author: "
+            a_ [class_ "hidden-link", href_ "/author"] "Wilfred Denton"
+            span_ " ]"
           ul_ $ do
             li_ $ button_ [href_ "/about"] "About"
             li_ $ button_ [href_ "/contact"] "Contact"

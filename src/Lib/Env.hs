@@ -9,6 +9,7 @@ import           Control.Lens            (makeClassy)
 import           Crypto.Gpgme            (Ctx, Protocol (OpenPGP), newCtx)
 import           Data.Aeson.Extended     (ToJSON, encode, genericToJSON, object,
                                           snakeNoPrefix, toJSON, (.=))
+import qualified Data.Text.IO            as T
 import           Data.Text.Lazy.Builder  (fromText, toLazyText)
 import           Data.Text.Lazy.Encoding (decodeUtf8)
 import           Database.SQLite.Simple  (Connection, open)
@@ -21,6 +22,7 @@ import           Katip                   (ColorStrategy (ColorIfTerminal),
                                           registerScribe, renderSeverity,
                                           toObject, unLogStr)
 import           Katip.Format.Time       (formatAsLogTime)
+import           Lucid.Extended          (ToHtml, pre_, toHtml, toHtmlRaw)
 import           Protolude               hiding (decodeUtf8)
 import           System.Directory        (doesDirectoryExist, doesFileExist)
 import           System.Exit             (exitFailure)
@@ -29,6 +31,7 @@ data ServerEnv = ServerEnv {
   _sPort           :: Int
 , _sSqliteDatabase :: FilePath
 , _sGnuPgHomedir   :: FilePath
+, _sPgpPublicKey   :: FilePath
 } deriving Generic
 makeClassy ''ServerEnv
 
@@ -47,8 +50,18 @@ data DbEnv = DbEnv {
 }
 makeClassy ''DbEnv
 
+newtype PgpKey = PgpKey { pkPgpKey :: Text } deriving Generic
+
+instance ToJSON PgpKey where
+  toJSON = genericToJSON snakeNoPrefix
+
+instance ToHtml PgpKey where
+  toHtmlRaw = toHtml
+  toHtml PgpKey {..}= pre_ $ toHtml pkPgpKey
+
 data AuthEnv = AuthEnv {
-  _aCtx :: Ctx
+  _aCtx    :: Ctx
+, _aPgpKey :: PgpKey
 }
 makeClassy ''AuthEnv
 
@@ -62,27 +75,30 @@ customJsonFormatter _color _verb Item{..} = fromText . toStrict . decodeUtf8 $ e
                    , "ns" .= _itemNamespace
                    ]
 
-validateFilePath :: MonadIO m => FilePath -> (FilePath -> IO Bool) -> m a -> m b -> m b
+validateFilePath :: MonadIO m => FilePath -> (FilePath -> IO Bool) -> (FilePath -> m a) -> m b -> m b
 validateFilePath path validate failure success = do
   validB <- liftIO $ validate path
   case validB of
     False -> do
-      _ <- failure
+      _ <- failure path
       liftIO exitFailure
     True -> success
 
-newAuthEnv :: MonadIO m => FilePath -> m AuthEnv
-newAuthEnv path = validateFilePath path doesDirectoryExist failure success
+newAuthEnv :: MonadIO m => FilePath -> FilePath -> m AuthEnv
+newAuthEnv homedir pgpKeyFile = do
+  validateFilePath homedir doesDirectoryExist (failure "GnuPG homedir") $ pure ()
+  validateFilePath pgpKeyFile doesFileExist (failure "PGP public key file") success
   where
-    failure = putStrLn $ "no GnuPG homedir found at filepath: " <> path
+    failure resource path = putStrLn $ "no " <> resource <> " found at filepath: " <> path
     success = do
-      ctx <- liftIO $ newCtx path "C" OpenPGP
-      pure $ AuthEnv ctx
+      ctx <- liftIO $ newCtx homedir "C" OpenPGP
+      pgpKey <- liftIO $ T.readFile pgpKeyFile
+      pure . AuthEnv ctx $ PgpKey pgpKey
 
 newDbEnv :: MonadIO m => FilePath -> m DbEnv
 newDbEnv path = validateFilePath path doesFileExist failure success
   where
-    failure = putStrLn $ "no sqlite database found at filepath: " <> path
+    failure path' = putStrLn $ "no sqlite database found at filepath: " <> path'
     success = do
       conn <- liftIO $ open path
       pure $ DbEnv conn

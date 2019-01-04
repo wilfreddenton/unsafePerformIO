@@ -144,6 +144,12 @@ textarea {
   min-height: 100px;
 }
 
+a.hidden-link {
+  padding: 0;
+  cursor: default;
+  text-decoration: none;
+}
+
 a.post-link {
   padding: 0;
   width: 100%;

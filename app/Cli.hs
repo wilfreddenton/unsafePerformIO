@@ -30,4 +30,9 @@ command = ServerEnv <$> option auto (
   short 'h' <>
   metavar "HOMEDIR" <>
   help "GnuPG homedir"
+  ) <*> strOption (
+  long "pgp-public-key" <>
+  short 'k' <>
+  metavar "PGP PUBLIC KEY" <>
+  help "File path of the pgp public key"
   )

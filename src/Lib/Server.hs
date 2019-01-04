@@ -6,20 +6,20 @@ module Lib.Server (
   app
 ) where
 
-import           Control.Lens          (( # ))
+import           Control.Lens          (view, ( # ))
 import           Data.Aeson.Extended   (object, (.=))
 import qualified Data.ByteString.Char8 as BS
 import           Data.Proxy            (Proxy (Proxy))
 import qualified Data.Text             as T
 import qualified Data.Text.Encoding    as T
 import           Lib.App               (App, appToHandler, runLoggerT)
-import           Lib.Effects.Author    (About, Contact, MonadAuthor,
-                                        PgpKey (PgpKey), getAbout, getContact,
-                                        getPgpKey, pkPgpKey)
+import           Lib.Effects.Author    (About, Contact, MonadAuthor, getAbout,
+                                        getContact)
 import           Lib.Effects.Logger    (MonadLogger, info, infoKatip,
                                         withContextKatip, withNamespace,
                                         withNamespaceKatip)
-import           Lib.Env               (AppEnv, HasLoggerEnv)
+import           Lib.Env               (AppEnv, CanAuthEnv, HasLoggerEnv,
+                                        PgpKey (PgpKey), aPgpKey)
 import           Lib.Error             (CanApiError, errorMessage, logAndThrow,
                                         toHttpError, _NotFoundError)
 import           Lib.Server.Api        (API)
@@ -49,16 +49,16 @@ aboutHandler = baseHandler "About" $ getAbout
 contactHandler :: CanAuthor e m => m (Template Contact)
 contactHandler = baseHandler "Contact" getContact
 
-pgpKeyHandler :: CanAuthor e m => m (Template PgpKey)
-pgpKeyHandler = baseHandler "PGP" getPgpKey
+pgpKeyHandler :: (MonadLogger m, CanAuthEnv a m) => m (Template PgpKey)
+pgpKeyHandler = withNamespace "pgp" $ do
+  info $ "request for pgp"
+  Template "Pgp" <$> view aPgpKey
 
-authorHandler :: CanAuthor e m => m AuthorTemplate
+authorHandler :: (CanAuthor e m, CanAuthEnv a m) => m AuthorTemplate
 authorHandler = withNamespace "author" $ do
   info $ "request for author page"
-  pgpKeyM <- getPgpKey
-  case pgpKeyM of
-    Nothing          -> logAndThrow $ _NotFoundError # "author"
-    Just PgpKey {..} -> pure $ AuthorTemplate pkPgpKey
+  PgpKey pgpKey <- view aPgpKey
+  pure $ AuthorTemplate pgpKey
 
 notFoundHandler :: (HasLoggerEnv a) => a -> ServerT Raw m
 notFoundHandler env = Tagged $ \req res -> do
