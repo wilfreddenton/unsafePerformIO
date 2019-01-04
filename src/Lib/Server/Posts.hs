@@ -14,9 +14,8 @@ import qualified Data.Text.Encoding  as T
 import           Lib.Effects.Logger  (MonadLogger, info, withContext,
                                       withNamespace)
 import           Lib.Effects.Post    (MonadPost, Post, getPostBySlug, getPosts)
-import           Lib.Error           (CanApiError, CanPostError,
-                                      logAndThrowError, _PostNotFoundError,
-                                      _UnauthorizedError)
+import           Lib.Error           (CanApiError, CanPostError, logAndThrow,
+                                      _PostNotFoundError, _UnauthorizedError)
 import           Lib.Server.Auth     (Signed (Signed))
 import           Lucid.Extended      (Template (Template))
 import           Protolude
@@ -49,7 +48,7 @@ getPostHandler slug = withNamespace "getPost" . withContext (object ["slug" .= s
   info "request for post"
   postM <- getPostBySlug slug
   post <- case postM of
-    Nothing -> logAndThrowError $ _PostNotFoundError # slug
+    Nothing -> logAndThrow $ _PostNotFoundError # slug
     Just p  -> pure $ p
   pure $ Template "Post" post
 
@@ -63,5 +62,5 @@ createPostHandler (Signed sig PostPayload {..}) = withNamespace "createPost" . w
       Right [(e, _, _)] -> if errorString e == "Success" then True else False
       Right _           -> False
   case authorized of
-    False -> logAndThrowError $ _UnauthorizedError # ()
+    False -> logAndThrow $ _UnauthorizedError # ()
     True  -> pure ()

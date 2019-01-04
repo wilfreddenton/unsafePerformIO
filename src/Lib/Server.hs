@@ -15,13 +15,13 @@ import qualified Data.Text.Encoding    as T
 import           Lib.App               (App, appToHandler, runLoggerT)
 import           Lib.Effects.Author    (About, Contact, MonadAuthor,
                                         PgpKey (PgpKey), getAbout, getContact,
-                                        getPgpKey)
+                                        getPgpKey, pkPgpKey)
 import           Lib.Effects.Logger    (MonadLogger, info, infoKatip,
                                         withContextKatip, withNamespace,
                                         withNamespaceKatip)
 import           Lib.Env               (AppEnv, HasLoggerEnv)
-import           Lib.Error             (errorMessage, toHttpError,
-                                        _NotFoundError)
+import           Lib.Error             (CanApiError, errorMessage, logAndThrow,
+                                        toHttpError, _NotFoundError)
 import           Lib.Server.Api        (API)
 import           Lib.Server.Posts      (createPostHandler, getPostHandler,
                                         getPostsHandler)
@@ -32,27 +32,33 @@ import           Network.Wai           (Application, rawPathInfo, responseLBS)
 import           Protolude             hiding (log)
 import           Servant
 
-type CanAuthor m = (MonadLogger m, MonadAuthor m)
+type CanAuthor e m = (MonadLogger m, MonadAuthor m, CanApiError e m)
 
-baseHandler :: (CanAuthor m) => Text -> m a -> m (Template a)
-baseHandler title action = withNamespace (T.toLower title) $ do
+baseHandler :: CanAuthor e m => Text -> m (Maybe a) -> m (Template a)
+baseHandler title action = withNamespace loweredTitle $ do
   info $ "request for " <> title
-  Template title <$> action
+  aM <- action
+  case aM of
+    Nothing -> logAndThrow $ _NotFoundError # loweredTitle
+    Just a  -> pure $ Template title a
+  where loweredTitle = T.toLower title
 
-aboutHandler :: CanAuthor m => m (Template About)
-aboutHandler = baseHandler "About" getAbout
+aboutHandler :: CanAuthor e m => m (Template About)
+aboutHandler = baseHandler "About" $ getAbout
 
-contactHandler :: CanAuthor m => m (Template Contact)
+contactHandler :: CanAuthor e m => m (Template Contact)
 contactHandler = baseHandler "Contact" getContact
 
-pgpKeyHandler :: CanAuthor m => m (Template PgpKey)
+pgpKeyHandler :: CanAuthor e m => m (Template PgpKey)
 pgpKeyHandler = baseHandler "PGP" getPgpKey
 
-authorHandler :: CanAuthor m => m AuthorTemplate
+authorHandler :: CanAuthor e m => m AuthorTemplate
 authorHandler = withNamespace "author" $ do
   info $ "request for author page"
-  PgpKey pgpKey <- getPgpKey
-  pure $ AuthorTemplate pgpKey
+  pgpKeyM <- getPgpKey
+  case pgpKeyM of
+    Nothing          -> logAndThrow $ _NotFoundError # "author"
+    Just PgpKey {..} -> pure $ AuthorTemplate pkPgpKey
 
 notFoundHandler :: (HasLoggerEnv a) => a -> ServerT Raw m
 notFoundHandler env = Tagged $ \req res -> do

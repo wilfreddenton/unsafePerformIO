@@ -7,9 +7,9 @@ import           Crypto.Random         (MonadRandom, getRandomBytes)
 import           Crypto.Random.Entropy (getEntropy)
 import           Katip                 (Katip, KatipContext, KatipContextT,
                                         runKatipContextT)
-import           Lib.Effects.Author    (MonadAuthor, getAbout, getAboutPure,
-                                        getContact, getContactPure, getPgpKey,
-                                        getPgpKeyPure)
+import           Lib.Effects.Author    (MonadAuthor, getAbout, getAboutSqlite,
+                                        getContact, getContactSqlite, getPgpKey,
+                                        getPgpKeySqlite)
 import           Lib.Effects.Logger    (MonadLogger (..), debugKatip,
                                         errorKatip, infoKatip, warnKatip,
                                         withContextKatip, withNamespaceKatip)
@@ -48,9 +48,9 @@ instance MonadPost App where
   getPostBySlug = getPostBySlugSqlite
 
 instance MonadAuthor App where
-  getAbout = getAboutPure
-  getContact = getContactPure
-  getPgpKey = getPgpKeyPure
+  getAbout = getAboutSqlite
+  getContact = getContactSqlite
+  getPgpKey = getPgpKeySqlite
 
 runLoggerT :: HasLoggerEnv e => e -> KatipContextT m a -> m a
 runLoggerT env = runKatipContextT (env^.lLogEnv) (env^.lContext) (env^.lNamespace)

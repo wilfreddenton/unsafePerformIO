@@ -59,14 +59,14 @@ instance ToHtml ApiError where
   toHtmlRaw = toHtml
   toHtml = toHtml'
 
-data DbError = DbErrorSqlite Text | DbError1
+data DbError = DbSqliteError Text | DbError1
 makeClassyPrisms ''DbError
 
 instance HttpStatus DbError where
   httpStatus _ = status500
 
 instance ErrorMessage DbError where
-  errorMessage (DbErrorSqlite msg) = msg
+  errorMessage (DbSqliteError msg) = msg
   errorMessage DbError1            = "undefined"
 
 instance ToJSON DbError where
@@ -144,8 +144,8 @@ toHttpError req appErr =
         Just accept  -> if B.isInfixOf "text/html" accept then htmlTuple else jsonTuple
   in ServantErr (statusCode) (show $ statusMessage) (toBS appErr) [contentTypeHeader]
 
-logAndThrowError :: (MonadLogger m, MonadError e m, ToJSON e) => e -> m a
-logAndThrowError err = withNamespace "error" . withContext err $ do
+logAndThrow :: (MonadLogger m, MonadError e m, ToJSON e) => e -> m a
+logAndThrow err = withNamespace "error" . withContext err $ do
   error "request could not be handled due to error"
   throwError err
 
