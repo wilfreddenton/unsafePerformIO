@@ -7,6 +7,7 @@ import           Crypto.Random         (MonadRandom, getRandomBytes)
 import           Crypto.Random.Entropy (getEntropy)
 import           Katip                 (Katip, KatipContext, KatipContextT,
                                         runKatipContextT)
+import           Lib.Effects.Auth      (MonadAuth, authorize, authorizeIO)
 import           Lib.Effects.Author    (MonadAuthor, getAbout, getAboutSqlite,
                                         getContact, getContactSqlite)
 import           Lib.Effects.Logger    (MonadLogger (..), debugKatip,
@@ -41,6 +42,9 @@ instance MonadTime App where
 
 instance MonadRandom App where
   getRandomBytes = liftIO . getEntropy
+
+instance MonadAuth App where
+  authorize = authorizeIO
 
 instance MonadPost App where
   getPosts = getPostsSqlite

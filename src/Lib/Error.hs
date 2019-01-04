@@ -41,16 +41,18 @@ toHtml' err = do
   p_ . toHtml $ errorMessage err
   where status = httpStatus err
 
-data ApiError = NotFoundError Text | UnauthorizedError
+data ApiError = NotFoundError Text | AuthorizationFailedError Text | UnauthorizedError
 makeClassyPrisms ''ApiError
 
 instance HttpStatus ApiError where
-  httpStatus (NotFoundError _) = status404
-  httpStatus UnauthorizedError = status401
+  httpStatus (NotFoundError _)            = status404
+  httpStatus (AuthorizationFailedError _) = status500
+  httpStatus UnauthorizedError            = status401
 
 instance ErrorMessage ApiError where
-  errorMessage (NotFoundError route) = "No such route: " <> route
-  errorMessage UnauthorizedError     = "Unauthorized request"
+  errorMessage (NotFoundError route)          = "No such route: " <> route
+  errorMessage (AuthorizationFailedError err) = "Authorization of request failed with error: " <> err
+  errorMessage UnauthorizedError              = "Unauthorized request"
 
 instance ToJSON ApiError where
   toJSON = toJSON'
@@ -148,6 +150,13 @@ logAndThrow :: (MonadLogger m, MonadError e m, ToJSON e) => e -> m a
 logAndThrow err = withNamespace "error" . withContext err $ do
   error "request could not be handled due to error"
   throwError err
+
+wrapIO :: (MonadLogger m, MonadError e m, ToJSON e, MonadIO m) => (Text -> e) -> IO a -> m a
+wrapIO f action = do
+  resultE <- liftIO $ catch (Right <$> action) (\e -> pure . Left . T.pack $ displayException (e :: SomeException))
+  case resultE of
+    Left err -> logAndThrow $ f err
+    Right a  -> pure a
 
 type CanError e m = (MonadError e m, ToJSON e)
 

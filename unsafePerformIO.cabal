@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a346b8405fe7d43c838dfbeb88c698b04ca5a6fa38d8ece09f010b626448d036
+-- hash: 79e441e240747396ef7bd75143bb3dc803c572e8c59525088c548bd9d30eff74
 
 name:           unsafePerformIO
 version:        0.1.0.0
@@ -31,6 +31,7 @@ library
       Lib
       Lib.App
       Lib.Db
+      Lib.Effects.Auth
       Lib.Effects.Author
       Lib.Effects.Logger
       Lib.Effects.Post
