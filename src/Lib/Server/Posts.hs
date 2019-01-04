@@ -8,6 +8,7 @@ import           Control.Lens        (( # ))
 import           Data.Aeson.Extended (FromJSON, ToJSON, Value, genericParseJSON,
                                       genericToJSON, object, parseJSON,
                                       snakeNoPrefix, toJSON, (.=))
+import qualified Data.Text           as T
 import           Lib.Effects.Auth    (MonadAuth, authorize)
 import           Lib.Effects.Logger  (MonadLogger, info, withContext,
                                       withNamespace)
@@ -16,7 +17,8 @@ import           Lib.Effects.Post    (MonadPost, Post (Post), createPost,
                                       getPosts, makeSlug)
 import           Lib.Effects.Time    (MonadTime, now)
 import           Lib.Error           (CanPostError, logAndThrow,
-                                      _PostNotFoundError)
+                                      _PostBodyEmptyError, _PostNotFoundError,
+                                      _PostTitleTooLongError)
 import           Lib.Server.Auth     (Signed (Signed))
 import           Lucid.Extended      (Template (Template))
 import           Protolude
@@ -33,6 +35,11 @@ instance ToJSON PostPayload where
 instance FromJSON PostPayload where
   parseJSON = genericParseJSON snakeNoPrefix
 
+validatePostPayload :: (MonadLogger m, CanPostError e m) => PostPayload -> m ()
+validatePostPayload PostPayload {..} = do
+  if T.length ppTitle > 280 then (logAndThrow $ _PostTitleTooLongError # ()) else pure ()
+  if T.length ppBody == 0 then (logAndThrow $ _PostBodyEmptyError # ()) else pure ()
+
 getPostsHandler :: (MonadLogger m, MonadPost m) => m (Template [Post])
 getPostsHandler = withNamespace "getPosts" $ do
   info "request for posts"
@@ -47,10 +54,11 @@ getPostHandler slug = withNamespace "getPost" . withContext (object ["slug" .= s
     Just p  -> pure $ p
   pure $ Template "Post" post
 
-createPostHandler :: (MonadLogger m, MonadTime m, MonadPost m, MonadAuth m) => Signed PostPayload -> m NoContent
-createPostHandler (Signed sig PostPayload {..}) = withNamespace "createPost" . withContext (object ["title" .= ppTitle]) $ do
+createPostHandler :: (MonadLogger m, MonadTime m, MonadPost m, MonadAuth m, CanPostError e m) => Signed PostPayload -> m NoContent
+createPostHandler (Signed sig pp@PostPayload {..}) = withNamespace "createPost" . withContext (object ["title" .= ppTitle]) $ do
   info "request to create post"
   authorize sig $ ppTitle <> ppBody
+  validatePostPayload pp
   createdAt <- now
   let slug = makeSlug ppTitle createdAt
   createPost $ Post Nothing ppTitle slug createdAt ppBody

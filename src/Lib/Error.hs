@@ -87,16 +87,19 @@ instance ToHtml DbError where
   toHtml = toHtml'
 
 data PostError = PostNotFoundError Text
-               | PostPayloadInvalidError
+               | PostTitleTooLongError
+               | PostBodyEmptyError
 makeClassyPrisms ''PostError
 
 instance HttpStatus PostError where
-  httpStatus (PostNotFoundError _)   = status404
-  httpStatus PostPayloadInvalidError = status400
+  httpStatus (PostNotFoundError _) = status404
+  httpStatus PostTitleTooLongError = status400
+  httpStatus PostBodyEmptyError    = status400
 
 instance ErrorMessage PostError where
   errorMessage (PostNotFoundError slug) = "No post is associated with identifier: " <> slug
-  errorMessage PostPayloadInvalidError = "Post payload was invalid"
+  errorMessage PostTitleTooLongError = "Post title must be <= 280 characters"
+  errorMessage PostBodyEmptyError = "Post body cannot be empty"
 
 instance ToJSON PostError where
   toJSON = toJSON'
