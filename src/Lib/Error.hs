@@ -41,17 +41,25 @@ toHtml' err = do
   p_ . toHtml $ errorMessage err
   where status = httpStatus err
 
-data ApiError = NotFoundError Text | AuthorizationFailedError Text | UnauthorizedError
+data ApiError = NotFoundError Text
+              | AuthorizationFailedError Text
+              | GetTimeError Text
+              | RngError Text
+              | UnauthorizedError
 makeClassyPrisms ''ApiError
 
 instance HttpStatus ApiError where
   httpStatus (NotFoundError _)            = status404
   httpStatus (AuthorizationFailedError _) = status500
+  httpStatus (GetTimeError _)             = status500
+  httpStatus (RngError _)                 = status500
   httpStatus UnauthorizedError            = status401
 
 instance ErrorMessage ApiError where
   errorMessage (NotFoundError route)          = "No such route: " <> route
   errorMessage (AuthorizationFailedError err) = "Authorization of request failed with error: " <> err
+  errorMessage (GetTimeError err) = "Could not complete request because getting current time failed with error: " <> err
+  errorMessage (RngError err) = "Could not complete request because generating random bytes failed with error: " <> err
   errorMessage UnauthorizedError              = "Unauthorized request"
 
 instance ToJSON ApiError where

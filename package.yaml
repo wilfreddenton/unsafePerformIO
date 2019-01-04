@@ -45,6 +45,7 @@ dependencies:
 - katip
 - lens
 - lucid
+- memory
 - mmark
 - optparse-applicative
 - protolude

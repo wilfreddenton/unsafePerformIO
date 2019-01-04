@@ -78,7 +78,7 @@ class Monad m => MonadPost m where
 getPostsSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => m [Post]
 getPostsSqlite = do
   conn <- view dConn
-  liftDbAction (query_ conn "SELECT * FROM posts" :: IO [Post])
+  liftDbAction (query_ conn "SELECT * FROM posts ORDER BY created_at DESC" :: IO [Post])
 
 getPostBySlugSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => Text -> m (Maybe Post)
 getPostBySlugSqlite slug = do

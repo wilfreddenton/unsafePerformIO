@@ -2,27 +2,27 @@
 
 module Lib.App where
 
-import           Control.Lens          ((^.))
-import           Crypto.Random         (MonadRandom, getRandomBytes)
-import           Crypto.Random.Entropy (getEntropy)
-import           Katip                 (Katip, KatipContext, KatipContextT,
-                                        runKatipContextT)
-import           Lib.Effects.Auth      (MonadAuth, authorize, authorizeIO)
-import           Lib.Effects.Author    (MonadAuthor, getAbout, getAboutSqlite,
-                                        getContact, getContactSqlite)
-import           Lib.Effects.Logger    (MonadLogger (..), debugKatip,
-                                        errorKatip, infoKatip, warnKatip,
-                                        withContextKatip, withNamespaceKatip)
-import           Lib.Effects.Post      (MonadPost, getPostBySlug,
-                                        getPostBySlugSqlite, getPosts,
-                                        getPostsSqlite)
-import           Lib.Effects.Time      (MonadTime, now, nowIO)
-import           Lib.Env               (AppEnv, HasLoggerEnv, lContext, lLogEnv,
-                                        lNamespace)
-import           Lib.Error             (AppError, toHttpError)
-import           Network.Wai           (Request)
+import           Control.Lens       ((^.))
+import           Crypto.Random      (MonadRandom, getRandomBytes)
+import           Katip              (Katip, KatipContext, KatipContextT,
+                                     runKatipContextT)
+import           Lib.Effects.Auth   (MonadAuth, authorize, authorizeIO)
+import           Lib.Effects.Author (MonadAuthor, getAbout, getAboutSqlite,
+                                     getContact, getContactSqlite)
+import           Lib.Effects.Logger (MonadLogger (..), debugKatip, errorKatip,
+                                     infoKatip, warnKatip, withContextKatip,
+                                     withNamespaceKatip)
+import           Lib.Effects.Post   (MonadPost, getPostBySlug,
+                                     getPostBySlugSqlite, getPosts,
+                                     getPostsSqlite)
+import           Lib.Effects.Random (getRandomBytesIO)
+import           Lib.Effects.Time   (MonadTime, now, nowIO)
+import           Lib.Env            (AppEnv, HasLoggerEnv, lContext, lLogEnv,
+                                     lNamespace)
+import           Lib.Error          (AppError, toHttpError)
+import           Network.Wai        (Request)
 import           Protolude
-import           Servant               (Handler)
+import           Servant            (Handler)
 
 newtype App a = App {
   unApp :: KatipContextT (ReaderT AppEnv (ExceptT AppError IO)) a
@@ -41,7 +41,7 @@ instance MonadTime App where
   now = nowIO
 
 instance MonadRandom App where
-  getRandomBytes = liftIO . getEntropy
+  getRandomBytes = getRandomBytesIO
 
 instance MonadAuth App where
   authorize = authorizeIO

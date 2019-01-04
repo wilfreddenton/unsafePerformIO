@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 79e441e240747396ef7bd75143bb3dc803c572e8c59525088c548bd9d30eff74
+-- hash: 0645fce9a1bb4c1ce64bd5102ae8f3e895084af6bf596f775c9b72c74663c3ac
 
 name:           unsafePerformIO
 version:        0.1.0.0
@@ -35,6 +35,7 @@ library
       Lib.Effects.Author
       Lib.Effects.Logger
       Lib.Effects.Post
+      Lib.Effects.Random
       Lib.Effects.Time
       Lib.Env
       Lib.Error
@@ -65,6 +66,7 @@ library
     , katip
     , lens
     , lucid
+    , memory
     , mmark
     , optparse-applicative
     , protolude
@@ -104,6 +106,7 @@ executable unsafe-perform-io
     , katip
     , lens
     , lucid
+    , memory
     , mmark
     , optparse-applicative
     , protolude
@@ -144,6 +147,7 @@ test-suite unsafe-perform-io-test
     , katip
     , lens
     , lucid
+    , memory
     , mmark
     , optparse-applicative
     , protolude
