@@ -23,8 +23,8 @@ import           Lib.Env               (AppEnv, CanAuthEnv, HasLoggerEnv,
 import           Lib.Error             (CanApiError, errorMessage, logAndThrow,
                                         toHttpError, _NotFoundError)
 import           Lib.Server.Api        (API)
-import           Lib.Server.Posts      (createPostHandler, getPostHandler,
-                                        getPostsHandler)
+import           Lib.Server.Posts      (createPostHandler, deletePostHandler,
+                                        getPostHandler, getPostsHandler)
 import           Lucid.Extended        (AuthorTemplate (AuthorTemplate),
                                         Template (Template))
 import           Network.HTTP.Types    (mkStatus)
@@ -73,8 +73,13 @@ notFoundHandler env = Tagged $ \req res -> do
 
 serverT :: (HasLoggerEnv a) => a -> ServerT API App
 serverT env =
-  getPostsHandler :<|>
-  (getPostsHandler :<|> getPostHandler :<|> createPostHandler) :<|>
+  getPostsHandler :<|> (
+    getPostsHandler :<|>
+    getPostHandler :<|>
+    createPostHandler :<|> (
+      deletePostHandler
+    )
+  ) :<|>
   aboutHandler :<|>
   contactHandler :<|>
   pgpKeyHandler :<|>

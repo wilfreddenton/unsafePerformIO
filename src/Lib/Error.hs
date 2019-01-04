@@ -95,7 +95,7 @@ instance HttpStatus PostError where
   httpStatus PostPayloadInvalidError = status400
 
 instance ErrorMessage PostError where
-  errorMessage (PostNotFoundError slug) = "No post is associated with slug: " <> slug
+  errorMessage (PostNotFoundError slug) = "No post is associated with identifier: " <> slug
   errorMessage PostPayloadInvalidError = "Post payload was invalid"
 
 instance ToJSON PostError where

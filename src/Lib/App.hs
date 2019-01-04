@@ -13,8 +13,10 @@ import           Lib.Effects.Logger (MonadLogger (..), debugKatip, errorKatip,
                                      infoKatip, warnKatip, withContextKatip,
                                      withNamespaceKatip)
 import           Lib.Effects.Post   (MonadPost, createPost, createPostSqlite,
-                                     getPostBySlug, getPostBySlugSqlite,
-                                     getPosts, getPostsSqlite)
+                                     deletePost, deletePostSqlite, getPostById,
+                                     getPostByIdSqlite, getPostBySlug,
+                                     getPostBySlugSqlite, getPosts,
+                                     getPostsSqlite)
 import           Lib.Effects.Random (getRandomBytesIO)
 import           Lib.Effects.Time   (MonadTime, now, nowIO)
 import           Lib.Env            (AppEnv, HasLoggerEnv, lContext, lLogEnv,
@@ -48,8 +50,10 @@ instance MonadAuth App where
 
 instance MonadPost App where
   getPosts = getPostsSqlite
+  getPostById = getPostByIdSqlite
   getPostBySlug = getPostBySlugSqlite
   createPost = createPostSqlite
+  deletePost = deletePostSqlite
 
 instance MonadAuthor App where
   getAbout = getAboutSqlite

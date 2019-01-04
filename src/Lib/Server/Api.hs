@@ -4,16 +4,17 @@
 
 module Lib.Server.Api where
 
-import           Lib.Effects.Author (About, Contact)
-import qualified Lib.Effects.Post   as P
-import           Lib.Env            (PgpKey)
-import           Lib.Server.Auth    (Signed)
-import           Lib.Server.Posts   (PostPayload)
-import           Lucid.Extended     (AuthorTemplate, Template)
+import           Data.Aeson.Extended (Value)
+import           Lib.Effects.Author  (About, Contact)
+import qualified Lib.Effects.Post    as P
+import           Lib.Env             (PgpKey)
+import           Lib.Server.Auth     (Signed)
+import           Lib.Server.Posts    (PostPayload)
+import           Lucid.Extended      (AuthorTemplate, Template)
 import           Protolude
-import           Servant            ((:<|>), (:>), Capture, Get, JSON,
-                                     NoContent, Post, Raw, ReqBody)
-import           Servant.HTML.Lucid (HTML)
+import           Servant             ((:<|>), (:>), Capture, Delete, Get, JSON,
+                                      NoContent, Post, Raw, ReqBody)
+import           Servant.HTML.Lucid  (HTML)
 
 type GetPosts = Get '[JSON, HTML] (Template [P.Post])
 
@@ -21,7 +22,10 @@ type API = GetPosts :<|>
   "posts" :> (
     GetPosts :<|>
     Capture "slug" Text :> Get '[JSON, HTML] (Template P.Post) :<|>
-    ReqBody '[JSON] (Signed PostPayload) :> Post '[JSON] NoContent
+    ReqBody '[JSON] (Signed PostPayload) :> Post '[JSON] NoContent :<|>
+    Capture "id" Int :> (
+      ReqBody '[JSON] (Signed Value) :> Delete '[JSON] NoContent
+    )
   ) :<|>
   "about" :> Get '[JSON, HTML] (Template About) :<|>
   "contact" :> Get '[JSON, HTML] (Template Contact) :<|>

@@ -15,9 +15,9 @@ import qualified Data.Text              as T
 import           Data.Time              (UTCTime (UTCTime), defaultTimeLocale,
                                          formatTime, fromGregorian,
                                          secondsToDiffTime)
-import           Database.SQLite.Simple (FromRow, NamedParam ((:=)), ToRow,
-                                         execute, field, fromRow, queryNamed,
-                                         query_, toRow)
+import           Database.SQLite.Simple (FromRow, NamedParam ((:=)),
+                                         Only (Only), ToRow, execute, field,
+                                         fromRow, queryNamed, query_, toRow)
 import           Lib.Db                 (CanDb, liftDbAction)
 import           Lib.Effects.Logger     (MonadLogger)
 import           Lib.Env                (dConn)
@@ -76,8 +76,10 @@ makeSlug title createdAt = T.pack createdAtStr <> "-" <> modifiedTitle
 -- Typeclass
 class Monad m => MonadPost m where
   getPosts :: m [Post]
+  getPostById :: Int -> m (Maybe Post)
   getPostBySlug :: Text -> m (Maybe Post)
   createPost :: Post -> m ()
+  deletePost :: Int -> m ()
 
 -- Implementations
 
@@ -87,6 +89,14 @@ getPostsSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => m [Post]
 getPostsSqlite = do
   conn <- view dConn
   liftDbAction (query_ conn "SELECT * FROM posts ORDER BY created_at DESC" :: IO [Post])
+
+getPostByIdSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => Int -> m (Maybe Post)
+getPostByIdSqlite id = do
+  conn <- view dConn
+  posts <- liftDbAction (queryNamed conn "SELECT * FROM posts WHERE id = :id" [":id" := id] :: IO [Post])
+  pure $ case posts of
+    []  -> Nothing
+    p:_ -> Just p
 
 getPostBySlugSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => Text -> m (Maybe Post)
 getPostBySlugSqlite slug = do
@@ -100,6 +110,11 @@ createPostSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => Post -> m ()
 createPostSqlite post = do
   conn <- view dConn
   liftDbAction (execute conn "INSERT INTO posts (slug, title, created_at, body) VALUES (?, ?, ?, ?)" post)
+
+deletePostSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => Int -> m ()
+deletePostSqlite id = do
+  conn <- view dConn
+  liftDbAction (execute conn "DELETE FROM posts where id = ?" (Only id))
 
 -- Pure
 

@@ -5,14 +5,15 @@
 module Lib.Server.Posts where
 
 import           Control.Lens        (( # ))
-import           Data.Aeson.Extended (FromJSON, ToJSON, genericParseJSON,
+import           Data.Aeson.Extended (FromJSON, ToJSON, Value, genericParseJSON,
                                       genericToJSON, object, parseJSON,
                                       snakeNoPrefix, toJSON, (.=))
 import           Lib.Effects.Auth    (MonadAuth, authorize)
 import           Lib.Effects.Logger  (MonadLogger, info, withContext,
                                       withNamespace)
 import           Lib.Effects.Post    (MonadPost, Post (Post), createPost,
-                                      getPostBySlug, getPosts, makeSlug)
+                                      deletePost, getPostById, getPostBySlug,
+                                      getPosts, makeSlug)
 import           Lib.Effects.Time    (MonadTime, now)
 import           Lib.Error           (CanPostError, logAndThrow,
                                       _PostNotFoundError)
@@ -54,3 +55,15 @@ createPostHandler (Signed sig PostPayload {..}) = withNamespace "createPost" . w
   let slug = makeSlug ppTitle createdAt
   createPost $ Post Nothing ppTitle slug createdAt ppBody
   pure NoContent
+
+deletePostHandler :: (MonadLogger m, MonadPost m, MonadAuth m, CanPostError e m) => Int -> Signed Value -> m NoContent
+deletePostHandler postId (Signed sig _) = withNamespace "deletePost" . withContext (object ["id" .= postId]) $ do
+  info "request to delete post"
+  authorize sig postIdText
+  postM <- getPostById postId
+  case postM of
+    Nothing -> logAndThrow $ _PostNotFoundError # postIdText
+    Just _  -> pure ()
+  deletePost postId
+  pure NoContent
+  where postIdText = show postId :: Text
