@@ -25,4 +25,9 @@ command = ServerEnv <$> option auto (
   short 's' <>
   metavar "SQLITE DATABASE" <>
   help "File path of the sqlite database"
+  ) <*> strOption (
+  long "gnupg-homedir" <>
+  short 'h' <>
+  metavar "HOMEDIR" <>
+  help "GnuPG homedir"
   )

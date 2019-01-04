@@ -6,8 +6,9 @@ import           Katip                           (closeScribes)
 import           Lib.App                         (runLoggerT)
 import           Lib.Effects.Logger              (infoKatip, withContextKatip)
 import           Lib.Env                         (AppEnv (AppEnv), ServerEnv,
-                                                  dConn, lLogEnv, newDbEnv,
-                                                  newLoggerEnv, sPort,
+                                                  dConn, lLogEnv, newAuthEnv,
+                                                  newDbEnv, newLoggerEnv,
+                                                  sGnuPgHomedir, sPort,
                                                   sSqliteDatabase, serverEnv)
 import           Lib.Server                      (app)
 import           Network.Wai.Handler.Warp        (run)
@@ -22,9 +23,10 @@ initialize :: ServerEnv -> IO ()
 initialize serverEnv' = bracket makeAppEnv stopApp runApp
   where
     makeAppEnv = do
-      loggerEnv <- newLoggerEnv
       dbEnv <- newDbEnv $ serverEnv'^.sSqliteDatabase
-      pure $ AppEnv serverEnv' loggerEnv dbEnv
+      authEnv <- newAuthEnv $ serverEnv'^.sGnuPgHomedir
+      loggerEnv <- newLoggerEnv
+      pure $ AppEnv serverEnv' loggerEnv dbEnv authEnv
     runApp env = do
       let port = env^.sPort
       throttler <- initThrottler (defaultThrottleSettings $ TimeSpec 5 0) { throttleSettingsRate = 15, throttleSettingsBurst = 20 }

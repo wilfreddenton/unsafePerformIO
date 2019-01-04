@@ -4,9 +4,8 @@
 
 module Lib.Server.Posts where
 
-import           Control.Lens        (( # ))
-import           Crypto.Gpgme        (Protocol (OpenPGP), errorString,
-                                      verifyDetached, withCtx)
+import           Control.Lens        (view, ( # ))
+import           Crypto.Gpgme        (errorString, verifyDetached)
 import           Data.Aeson.Extended (FromJSON, ToJSON, genericParseJSON,
                                       genericToJSON, object, parseJSON,
                                       snakeNoPrefix, toJSON, (.=))
@@ -14,6 +13,7 @@ import qualified Data.Text.Encoding  as T
 import           Lib.Effects.Logger  (MonadLogger, info, withContext,
                                       withNamespace)
 import           Lib.Effects.Post    (MonadPost, Post, getPostBySlug, getPosts)
+import           Lib.Env             (CanAuthEnv, aCtx)
 import           Lib.Error           (CanApiError, CanPostError, logAndThrow,
                                       _PostNotFoundError, _UnauthorizedError)
 import           Lib.Server.Auth     (Signed (Signed))
@@ -52,10 +52,11 @@ getPostHandler slug = withNamespace "getPost" . withContext (object ["slug" .= s
     Just p  -> pure $ p
   pure $ Template "Post" post
 
-createPostHandler :: (MonadLogger m, MonadIO m, CanApiError e m) => Signed PostPayload -> m ()
+createPostHandler :: (MonadLogger m, MonadIO m, CanApiError e m, CanAuthEnv a m) => Signed PostPayload -> m ()
 createPostHandler (Signed sig PostPayload {..}) = withNamespace "createPost" . withContext (object ["title" .= ppTitle]) $ do
   info "request to create post"
-  authorized <- liftIO $ withCtx "/home/wilfred/Documents/unsafePerformIO/.gnupg" "C" OpenPGP $ \ctx -> do
+  ctx <- view aCtx
+  authorized <- liftIO $ do
     resultE <- verifyDetached ctx (T.encodeUtf8 sig) (T.encodeUtf8 $ ppTitle <> ppBody)
     pure $ case resultE of
       Left _            -> False

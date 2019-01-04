@@ -6,6 +6,7 @@
 module Lib.Env where
 
 import           Control.Lens            (makeClassy)
+import           Crypto.Gpgme            (Ctx, Protocol (OpenPGP), newCtx)
 import           Data.Aeson.Extended     (ToJSON, encode, genericToJSON, object,
                                           snakeNoPrefix, toJSON, (.=))
 import           Data.Text.Lazy.Builder  (fromText, toLazyText)
@@ -21,12 +22,13 @@ import           Katip                   (ColorStrategy (ColorIfTerminal),
                                           toObject, unLogStr)
 import           Katip.Format.Time       (formatAsLogTime)
 import           Protolude               hiding (decodeUtf8)
-import           System.Directory        (doesFileExist)
+import           System.Directory        (doesDirectoryExist, doesFileExist)
 import           System.Exit             (exitFailure)
 
 data ServerEnv = ServerEnv {
   _sPort           :: Int
 , _sSqliteDatabase :: FilePath
+, _sGnuPgHomedir   :: FilePath
 } deriving Generic
 makeClassy ''ServerEnv
 
@@ -45,6 +47,11 @@ data DbEnv = DbEnv {
 }
 makeClassy ''DbEnv
 
+data AuthEnv = AuthEnv {
+  _aCtx :: Ctx
+}
+makeClassy ''AuthEnv
+
 customJsonFormatter :: LogItem a => ItemFormatter a
 customJsonFormatter _color _verb Item{..} = fromText . toStrict . decodeUtf8 $ encode value
   where
@@ -55,27 +62,42 @@ customJsonFormatter _color _verb Item{..} = fromText . toStrict . decodeUtf8 $ e
                    , "ns" .= _itemNamespace
                    ]
 
+validateFilePath :: MonadIO m => FilePath -> (FilePath -> IO Bool) -> m a -> m b -> m b
+validateFilePath path validate failure success = do
+  validB <- liftIO $ validate path
+  case validB of
+    False -> do
+      _ <- failure
+      liftIO exitFailure
+    True -> success
+
+newAuthEnv :: MonadIO m => FilePath -> m AuthEnv
+newAuthEnv path = validateFilePath path doesDirectoryExist failure success
+  where
+    failure = putStrLn $ "no GnuPG homedir found at filepath: " <> path
+    success = do
+      ctx <- liftIO $ newCtx path "C" OpenPGP
+      pure $ AuthEnv ctx
+
+newDbEnv :: MonadIO m => FilePath -> m DbEnv
+newDbEnv path = validateFilePath path doesFileExist failure success
+  where
+    failure = putStrLn $ "no sqlite database found at filepath: " <> path
+    success = do
+      conn <- liftIO $ open path
+      pure $ DbEnv conn
+
 newLoggerEnv :: MonadIO m => m LoggerEnv
 newLoggerEnv = do
   handleScribe <- liftIO $ mkHandleScribeWithFormatter customJsonFormatter ColorIfTerminal stdout DebugS V3
   logEnv <- liftIO $ registerScribe "stdout" handleScribe defaultScribeSettings =<< initLogEnv "IO" "development"
   pure $ LoggerEnv logEnv mempty mempty
 
-newDbEnv :: MonadIO m => FilePath -> m DbEnv
-newDbEnv path = do
-  doesExist <- liftIO $ doesFileExist path
-  case doesExist of
-    False -> do
-      putStrLn $ "no sqlite database found at filepath: " <> path
-      liftIO exitFailure
-    True -> do
-      conn <- liftIO $ open path
-      pure $ DbEnv conn
-
 data AppEnv = AppEnv {
   _appServerEnv :: ServerEnv
 , _appLoggerEnv :: LoggerEnv
 , _appDbEnv     :: DbEnv
+, _appAuthEnv   :: AuthEnv
 }
 makeClassy ''AppEnv
 
@@ -88,4 +110,11 @@ instance HasLoggerEnv AppEnv where
 instance HasDbEnv AppEnv where
   dbEnv = appDbEnv . dbEnv
 
+instance HasAuthEnv AppEnv where
+  authEnv = appAuthEnv . authEnv
+
+type CanServerEnv a m = (MonadReader a m, HasServerEnv a)
+
 type CanDbEnv a m = (MonadReader a m, HasDbEnv a)
+
+type CanAuthEnv a m = (MonadReader a m, HasAuthEnv a)
