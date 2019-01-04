@@ -13,7 +13,8 @@ import           Lib.Effects.Logger (MonadLogger (..), debugKatip, errorKatip,
                                      infoKatip, warnKatip, withContextKatip,
                                      withNamespaceKatip)
 import           Lib.Effects.Post   (MonadPost, createPost, createPostSqlite,
-                                     deletePost, deletePostSqlite, getPostById,
+                                     deletePost, deletePostSqlite, editPost,
+                                     editPostSqlite, getPostById,
                                      getPostByIdSqlite, getPostBySlug,
                                      getPostBySlugSqlite, getPosts,
                                      getPostsSqlite)
@@ -53,6 +54,7 @@ instance MonadPost App where
   getPostById = getPostByIdSqlite
   getPostBySlug = getPostBySlugSqlite
   createPost = createPostSqlite
+  editPost = editPostSqlite
   deletePost = deletePostSqlite
 
 instance MonadAuthor App where

@@ -24,7 +24,8 @@ import           Lib.Error             (CanApiError, errorMessage, logAndThrow,
                                         toHttpError, _NotFoundError)
 import           Lib.Server.Api        (API)
 import           Lib.Server.Posts      (createPostHandler, deletePostHandler,
-                                        getPostHandler, getPostsHandler)
+                                        editPostHandler, getPostHandler,
+                                        getPostsHandler)
 import           Lucid.Extended        (AuthorTemplate (AuthorTemplate),
                                         Template (Template))
 import           Network.HTTP.Types    (mkStatus)
@@ -76,9 +77,9 @@ serverT env =
   getPostsHandler :<|> (
     getPostsHandler :<|>
     getPostHandler :<|>
-    createPostHandler :<|> (
-      deletePostHandler
-    )
+    createPostHandler :<|>
+    editPostHandler :<|>
+    deletePostHandler
   ) :<|>
   aboutHandler :<|>
   contactHandler :<|>

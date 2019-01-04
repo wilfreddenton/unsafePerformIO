@@ -12,9 +12,9 @@ import qualified Data.Text           as T
 import           Lib.Effects.Auth    (MonadAuth, authorize)
 import           Lib.Effects.Logger  (MonadLogger, info, withContext,
                                       withNamespace)
-import           Lib.Effects.Post    (MonadPost, Post (Post), createPost,
-                                      deletePost, getPostById, getPostBySlug,
-                                      getPosts, makeSlug)
+import           Lib.Effects.Post    (MonadPost, Post (..), createPost,
+                                      deletePost, editPost, getPostById,
+                                      getPostBySlug, getPosts, makeSlug)
 import           Lib.Effects.Time    (MonadTime, now)
 import           Lib.Error           (CanPostError, logAndThrow,
                                       _PostBodyEmptyError, _PostNotFoundError,
@@ -62,6 +62,18 @@ createPostHandler (Signed sig pp@PostPayload {..}) = withNamespace "createPost" 
   createdAt <- now
   let slug = makeSlug ppTitle createdAt
   createPost $ Post Nothing ppTitle slug createdAt ppBody
+  pure NoContent
+
+editPostHandler :: (MonadLogger m, MonadPost m, MonadAuth m, CanPostError e m) => Int -> Signed PostPayload -> m NoContent
+editPostHandler postId (Signed sig pp@PostPayload {..}) = withNamespace "editPost" . withContext (object ["id" .= postId]) $ do
+  info "request to edit post"
+  authorize sig $ ppTitle <> ppBody
+  validatePostPayload pp
+  postM <- getPostById postId
+  post@Post {..} <- case postM of
+    Nothing -> logAndThrow $ _PostNotFoundError # (show postId :: Text)
+    Just p  -> pure p
+  editPost postId $ post { pTitle = ppTitle, pSlug = makeSlug ppTitle pCreatedAt, pBody = ppBody }
   pure NoContent
 
 deletePostHandler :: (MonadLogger m, MonadPost m, MonadAuth m, CanPostError e m) => Int -> Signed Value -> m NoContent

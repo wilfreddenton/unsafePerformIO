@@ -16,8 +16,9 @@ import           Data.Time              (UTCTime (UTCTime), defaultTimeLocale,
                                          formatTime, fromGregorian,
                                          secondsToDiffTime)
 import           Database.SQLite.Simple (FromRow, NamedParam ((:=)),
-                                         Only (Only), ToRow, execute, field,
-                                         fromRow, queryNamed, query_, toRow)
+                                         Only (Only), ToRow, execute,
+                                         executeNamed, field, fromRow,
+                                         queryNamed, query_, toRow)
 import           Lib.Db                 (CanDb, liftDbAction)
 import           Lib.Effects.Logger     (MonadLogger)
 import           Lib.Env                (dConn)
@@ -79,6 +80,7 @@ class Monad m => MonadPost m where
   getPostById :: Int -> m (Maybe Post)
   getPostBySlug :: Text -> m (Maybe Post)
   createPost :: Post -> m ()
+  editPost :: Int -> Post -> m ()
   deletePost :: Int -> m ()
 
 -- Implementations
@@ -110,6 +112,17 @@ createPostSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => Post -> m ()
 createPostSqlite post = do
   conn <- view dConn
   liftDbAction (execute conn "INSERT INTO posts (slug, title, created_at, body) VALUES (?, ?, ?, ?)" post)
+
+editPostSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => Int -> Post -> m ()
+editPostSqlite id Post{..} = do
+  conn <- view dConn
+  liftDbAction (executeNamed conn "UPDATE posts SET title = :title, slug = :slug, body = :body WHERE id = :id" params)
+  where
+    params = [ ":title" := pTitle
+              , ":slug" := pSlug
+              , ":body" := pBody
+              , ":id" := id
+              ]
 
 deletePostSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => Int -> m ()
 deletePostSqlite id = do
