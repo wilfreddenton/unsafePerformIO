@@ -7,8 +7,10 @@ import           Crypto.Random      (MonadRandom, getRandomBytes)
 import           Katip              (Katip, KatipContext, KatipContextT,
                                      runKatipContextT)
 import           Lib.Effects.Auth   (MonadAuth, authorize, authorizeIO)
-import           Lib.Effects.Author (MonadAuthor, getAbout, getAboutSqlite,
-                                     getContact, getContactSqlite)
+import           Lib.Effects.Author (MonadAuthor, editAbout, editAboutSqlite,
+                                     editContact, editContactSqlite, getAbout,
+                                     getAboutSqlite, getContact,
+                                     getContactSqlite)
 import           Lib.Effects.Logger (MonadLogger (..), debugKatip, errorKatip,
                                      infoKatip, warnKatip, withContextKatip,
                                      withNamespaceKatip)
@@ -59,7 +61,9 @@ instance MonadPost App where
 
 instance MonadAuthor App where
   getAbout = getAboutSqlite
+  editAbout = editAboutSqlite
   getContact = getContactSqlite
+  editContact = editContactSqlite
 
 runLoggerT :: HasLoggerEnv e => e -> KatipContextT m a -> m a
 runLoggerT env = runKatipContextT (env^.lLogEnv) (env^.lContext) (env^.lNamespace)

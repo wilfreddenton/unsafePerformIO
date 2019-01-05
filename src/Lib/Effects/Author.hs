@@ -7,11 +7,14 @@
 module Lib.Effects.Author where
 
 import           Control.Lens                     (view)
-import           Data.Aeson.Extended              (ToJSON, genericToJSON,
+import           Data.Aeson.Extended              (FromJSON, ToJSON,
+                                                   genericParseJSON,
+                                                   genericToJSON, parseJSON,
                                                    snakeNoPrefix, toJSON)
-import           Database.SQLite.Simple           (Connection, FromRow, ToRow,
-                                                   field, fromRow, query_,
-                                                   toRow)
+import           Database.SQLite.Simple           (Connection, FromRow,
+                                                   NamedParam ((:=)), ToRow,
+                                                   execute, executeNamed, field,
+                                                   fromRow, query_, toRow)
 import           Database.SQLite.Simple.FromField (FromField)
 import           Database.SQLite.Simple.ToField   (ToField)
 import           Lib.Db                           (CanDb, liftDbAction)
@@ -25,48 +28,35 @@ import           Protolude
 
 -- Types
 
-newtype MyLocation = MyLocation Text deriving (Generic, ToField, FromField)
-
-instance ToJSON MyLocation where
-  toJSON (MyLocation location) = toJSON location
+newtype MyLocation = MyLocation Text
+  deriving (Generic, ToField, FromField, ToJSON, FromJSON)
 
 instance ToHtml MyLocation where
   toHtmlRaw = toHtml
   toHtml (MyLocation location)= toHtml location
 
-newtype Email = Email Text deriving (Generic, ToField, FromField)
-
-instance ToJSON Email where
-  toJSON (Email email) = toJSON email
+newtype Email = Email Text
+  deriving (Generic, ToField, FromField, ToJSON, FromJSON)
 
 instance ToHtml Email where
   toHtmlRaw = toHtml
   toHtml (Email email)= a_ [href_ $ "mailto:" <> email, target_ "_blank"] $ toHtml email
 
-newtype LinkedIn = LinkedIn Text deriving (Generic, ToField, FromField)
-
-instance ToJSON LinkedIn where
-  toJSON (LinkedIn username) = toJSON username
+newtype LinkedIn = LinkedIn Text deriving (Generic, ToField, FromField, ToJSON, FromJSON)
 
 instance ToHtml LinkedIn where
   toHtmlRaw = toHtml
   toHtml (LinkedIn username) =
     a_ [href_ $ "https://www.linkedin.com/in/" <> username, target_ "_blank"] . toHtml $ "linkedin.com/in/" <> username
 
-newtype FacebookMessenger = FacebookMessenger Text deriving (Generic, ToField, FromField)
-
-instance ToJSON FacebookMessenger where
-  toJSON (FacebookMessenger username) = toJSON username
+newtype FacebookMessenger = FacebookMessenger Text deriving (Generic, ToField, FromField, ToJSON, FromJSON)
 
 instance ToHtml FacebookMessenger where
   toHtmlRaw = toHtml
   toHtml (FacebookMessenger username) =
     a_ [href_ $ "https://m.me/" <> username, target_ "_blank"] . toHtml $ "m.me/" <> username
 
-newtype Instagram = Instagram Text deriving (Generic, ToField, FromField)
-
-instance ToJSON Instagram where
-  toJSON (Instagram username) = toJSON username
+newtype Instagram = Instagram Text deriving (Generic, ToField, FromField, ToJSON, FromJSON)
 
 instance ToHtml Instagram where
   toHtmlRaw = toHtml
@@ -74,7 +64,7 @@ instance ToHtml Instagram where
     a_ [href_ $ "https://www.instagram.com/" <> username, target_ "_blank"] . toHtml $ "instagram.com/" <> username
 
 data Contact = Contact {
-  dId                :: Int
+  cId                :: Maybe Int
 , cLocation          :: MyLocation
 , cEmail             :: Email
 , cLinkedIn          :: LinkedIn
@@ -86,10 +76,13 @@ instance FromRow Contact where
   fromRow = Contact <$> field <*> field <*> field <*> field <*> field <*> field
 
 instance ToRow Contact where
-  toRow Contact {..} = toRow (dId, cLocation, cEmail, cLinkedIn, cFacebookMessenger, cInstagram)
+  toRow Contact {..} = toRow (cLocation, cEmail, cLinkedIn, cFacebookMessenger, cInstagram)
 
 instance ToJSON Contact where
   toJSON = genericToJSON snakeNoPrefix
+
+instance FromJSON Contact where
+  parseJSON = genericParseJSON snakeNoPrefix
 
 instance ToHtml Contact where
   toHtmlRaw = toHtml
@@ -105,7 +98,7 @@ instance ToHtml Contact where
         toHtml v
 
 data About = About {
-  aId    :: Int
+  aId    :: Maybe Int
 , aTitle :: Text
 , aBody  :: Text
 } deriving Generic
@@ -114,10 +107,13 @@ instance FromRow About where
   fromRow = About <$> field <*> field <*> field
 
 instance ToRow About where
-  toRow About {..} = toRow (aId, aTitle, aBody)
+  toRow About {..} = toRow (aTitle, aBody)
 
 instance ToJSON About where
   toJSON = genericToJSON snakeNoPrefix
+
+instance FromJSON About where
+  parseJSON = genericParseJSON snakeNoPrefix
 
 instance ToHtml About where
   toHtmlRaw = toHtml
@@ -129,7 +125,9 @@ instance ToHtml About where
 
 class Monad m => MonadAuthor m where
   getAbout :: m (Maybe About)
+  editAbout :: About -> m ()
   getContact :: m (Maybe Contact)
+  editContact :: Contact -> m ()
 
 -- Implementations
 
@@ -148,17 +146,42 @@ getAboutSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => m (Maybe About)
 getAboutSqlite = onlyOneSqlite $ action
   where action conn = (query_ conn "SELECT * FROM about" :: IO [About])
 
+editAboutSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => About -> m ()
+editAboutSqlite about = do
+  conn <- view dConn
+  aboutM <- getAboutSqlite
+  liftDbAction $ case aboutM of
+    Nothing -> (execute conn "INSERT INTO about (title, body) VALUES (?, ?)" about)
+    Just about' -> (executeNamed conn "UPDATE about SET title = :title, body = :body WHERE id = :id"
+                    [ ":title" := aTitle about
+                    , ":body" := aBody about
+                    , ":id" := aId about'])
+
 getContactSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => m (Maybe Contact)
 getContactSqlite = onlyOneSqlite $ action
   where action conn = (query_ conn "SELECT * FROM contact" :: IO [Contact])
 
+editContactSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => Contact -> m ()
+editContactSqlite contact = do
+  conn <- view dConn
+  contactM <- getContactSqlite
+  liftDbAction $ case contactM of
+    Nothing -> (execute conn "INSERT INTO contact (location, email, linked_in, facebook_messenger, instagram) VALUES (?, ?, ?, ?, ?)" contact)
+    Just contact' -> (executeNamed conn "UPDATE contact SET location = :l, email = :e, linked_in = :li, facebook_messenger = :fm, instagram = :in WHERE id = :id"
+                    [ ":l" := cLocation contact
+                    , ":e" := cEmail contact
+                    , ":li" := cLinkedIn contact
+                    , ":fm" := cFacebookMessenger contact
+                    , ":in" := cInstagram contact
+                    , ":id" := cId contact'])
+
 -- Pure
 
 getAboutPure :: Monad m => m (Maybe About)
-getAboutPure = purer $ About 1 "I'm a full-stack software engineer currently working in New York City." "I've been working on private blockchain solutions for the financial services industry at [Symbiont.io](https://symbiont.io) since mid-2017. We hope to replace all the fax machines on Wall Street!\n\nThis blog is a collection of primarily technical posts. Writing the posts helps me further understand the topics and hopefully the posts themselves will be useful to readers. It is named after the Haskell function [`unsafePerformIO`](http://hackage.haskell.org/package/base-4.12.0.0/docs/System-IO-Unsafe.html#v:unsafePerformIO). I think of each post as a call to this function. I put something out into the world unsure as to what might be thrown back at me."
+getAboutPure = purer $ About (Just 1) "I'm a full-stack software engineer currently working in New York City." "I've been working on private blockchain solutions for the financial services industry at [Symbiont.io](https://symbiont.io) since mid-2017. We hope to replace all the fax machines on Wall Street!\n\nThis blog is a collection of primarily technical posts. Writing the posts helps me further understand the topics and hopefully the posts themselves will be useful to readers. It is named after the Haskell function [`unsafePerformIO`](http://hackage.haskell.org/package/base-4.12.0.0/docs/System-IO-Unsafe.html#v:unsafePerformIO). I think of each post as a call to this function. I put something out into the world unsure as to what might be thrown back at me."
 
 getContactPure :: Monad m => m (Maybe Contact)
-getContactPure = purer $ Contact 1 myLocation email linkedIn facebookMessenger instagram
+getContactPure = purer $ Contact (Just 1) myLocation email linkedIn facebookMessenger instagram
   where
     myLocation = MyLocation "New York, New York"
     email = Email "dentonw3@gmail.com"

@@ -6,60 +6,28 @@ module Lib.Server (
   app
 ) where
 
-import           Control.Lens          (view, ( # ))
+import           Control.Lens          (( # ))
 import           Data.Aeson.Extended   (object, (.=))
 import qualified Data.ByteString.Char8 as BS
 import           Data.Proxy            (Proxy (Proxy))
-import qualified Data.Text             as T
 import qualified Data.Text.Encoding    as T
 import           Lib.App               (App, appToHandler, runLoggerT)
-import           Lib.Effects.Author    (About, Contact, MonadAuthor, getAbout,
-                                        getContact)
-import           Lib.Effects.Logger    (MonadLogger, info, infoKatip,
-                                        withContextKatip, withNamespace,
+import           Lib.Effects.Logger    (infoKatip, withContextKatip,
                                         withNamespaceKatip)
-import           Lib.Env               (AppEnv, CanAuthEnv, HasLoggerEnv,
-                                        PgpKey (PgpKey), aPgpKey)
-import           Lib.Error             (CanApiError, errorMessage, logAndThrow,
-                                        toHttpError, _NotFoundError)
+import           Lib.Env               (AppEnv, HasLoggerEnv)
+import           Lib.Error             (errorMessage, toHttpError,
+                                        _NotFoundError)
 import           Lib.Server.Api        (API)
+import           Lib.Server.Author     (aboutHandler, authorHandler,
+                                        contactHandler, editAboutHandler,
+                                        editContactHandler, pgpKeyHandler)
 import           Lib.Server.Posts      (createPostHandler, deletePostHandler,
                                         editPostHandler, getPostHandler,
                                         getPostsHandler)
-import           Lucid.Extended        (AuthorTemplate (AuthorTemplate),
-                                        Template (Template))
 import           Network.HTTP.Types    (mkStatus)
 import           Network.Wai           (Application, rawPathInfo, responseLBS)
 import           Protolude             hiding (log)
 import           Servant
-
-type CanAuthor e m = (MonadLogger m, MonadAuthor m, CanApiError e m)
-
-baseHandler :: CanAuthor e m => Text -> m (Maybe a) -> m (Template a)
-baseHandler title action = withNamespace loweredTitle $ do
-  info $ "request for " <> title
-  aM <- action
-  case aM of
-    Nothing -> logAndThrow $ _NotFoundError # loweredTitle
-    Just a  -> pure $ Template title a
-  where loweredTitle = T.toLower title
-
-aboutHandler :: CanAuthor e m => m (Template About)
-aboutHandler = baseHandler "About" $ getAbout
-
-contactHandler :: CanAuthor e m => m (Template Contact)
-contactHandler = baseHandler "Contact" getContact
-
-pgpKeyHandler :: (MonadLogger m, CanAuthEnv a m) => m (Template PgpKey)
-pgpKeyHandler = withNamespace "pgp" $ do
-  info $ "request for pgp"
-  Template "Pgp" <$> view aPgpKey
-
-authorHandler :: (CanAuthor e m, CanAuthEnv a m) => m AuthorTemplate
-authorHandler = withNamespace "author" $ do
-  info $ "request for author page"
-  PgpKey pgpKey <- view aPgpKey
-  pure $ AuthorTemplate pgpKey
 
 notFoundHandler :: (HasLoggerEnv a) => a -> ServerT Raw m
 notFoundHandler env = Tagged $ \req res -> do
@@ -80,9 +48,13 @@ serverT env =
     createPostHandler :<|>
     editPostHandler :<|>
     deletePostHandler
+  ) :<|> (
+    aboutHandler :<|>
+    editAboutHandler
+  ) :<|> (
+    contactHandler :<|>
+    editContactHandler
   ) :<|>
-  aboutHandler :<|>
-  contactHandler :<|>
   pgpKeyHandler :<|>
   authorHandler :<|>
   serveDirectoryWebApp "assets" :<|>

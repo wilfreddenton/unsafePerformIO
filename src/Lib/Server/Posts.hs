@@ -9,7 +9,7 @@ import           Data.Aeson.Extended (FromJSON, ToJSON, Value, genericParseJSON,
                                       genericToJSON, object, parseJSON,
                                       snakeNoPrefix, toJSON, (.=))
 import qualified Data.Text           as T
-import           Lib.Effects.Auth    (MonadAuth, authorize)
+import           Lib.Effects.Auth    (MonadAuth, Signed (Signed), authorize)
 import           Lib.Effects.Logger  (MonadLogger, info, withContext,
                                       withNamespace)
 import           Lib.Effects.Post    (MonadPost, Post (..), createPost,
@@ -19,7 +19,6 @@ import           Lib.Effects.Time    (MonadTime, now)
 import           Lib.Error           (CanPostError, logAndThrow,
                                       _PostBodyEmptyError, _PostNotFoundError,
                                       _PostTitleTooLongError)
-import           Lib.Server.Auth     (Signed (Signed))
 import           Lucid.Extended      (Template (Template))
 import           Protolude
 import           Servant             (NoContent (NoContent))

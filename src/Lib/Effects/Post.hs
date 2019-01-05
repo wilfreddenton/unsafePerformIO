@@ -119,10 +119,10 @@ editPostSqlite id Post{..} = do
   liftDbAction (executeNamed conn "UPDATE posts SET title = :title, slug = :slug, body = :body WHERE id = :id" params)
   where
     params = [ ":title" := pTitle
-              , ":slug" := pSlug
-              , ":body" := pBody
-              , ":id" := id
-              ]
+             , ":slug" := pSlug
+             , ":body" := pBody
+             , ":id" := id
+             ]
 
 deletePostSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => Int -> m ()
 deletePostSqlite id = do
