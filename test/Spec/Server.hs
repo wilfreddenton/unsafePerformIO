@@ -21,8 +21,7 @@ import           Lib.Effects.Post   (MonadPost, createPost, createPostSqlite,
                                      getPostsSqlite)
 import           Lib.Effects.Time   (MonadTime, now, nowIO)
 import           Lib.Env            (DbEnv, HasDbEnv (..), newDbEnv)
-import           Lib.Error          (AppError (AppPostError),
-                                     PostError (PostTitleTooLongError))
+import           Lib.Error          (AppError (AppPostError), PostError (..))
 import           Lib.Server.Posts   (PostPayload (PostPayload),
                                      createPostHandler)
 import           Protolude
@@ -68,10 +67,22 @@ runMockApp action = do
   runExceptT . flip runReaderT env $ unMockApp action
 
 serverSpec :: Spec
-serverSpec = describe "Create Post Handler" $ do
-  it "should return a PostTitleTooLongError" $ do
-    runMockApp (createPostHandler $ Signed "" (PostPayload (T.replicate 281 "c") ""))
-      `shouldReturn` Left (AppPostError PostTitleTooLongError)
+serverSpec = do
+  describe "Create Post Handler" $ do
+    it "should return a PostTitleTooLongError" $ do
+      runMockApp (createPostHandler $ Signed "" (PostPayload (T.replicate 281 "c") ""))
+        `shouldReturn` Left (AppPostError PostTitleTooLongError)
+    it "should return a PostTitleEmptyError" $ do
+      runMockApp (createPostHandler $ Signed "" (PostPayload "" ""))
+        `shouldReturn` Left (AppPostError PostTitleEmptyError)
+    it "should return a PostBodyEmptyError" $ do
+      runMockApp (createPostHandler $ Signed "" (PostPayload "title" ""))
+        `shouldReturn` Left (AppPostError PostBodyEmptyError)
+
+  describe "Edit Post Handler" $ do
+    it "should return a PostBodyEmptyError" $ do
+      runMockApp (createPostHandler $ Signed "" (PostPayload "title" ""))
+        `shouldReturn` Left (AppPostError PostBodyEmptyError)
 
 -- editPostSpec :: Spec
 -- editPostSpec = undefined

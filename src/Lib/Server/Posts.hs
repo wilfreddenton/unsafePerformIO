@@ -18,6 +18,7 @@ import           Lib.Effects.Post    (MonadPost, Post (..), createPost,
 import           Lib.Effects.Time    (MonadTime, now)
 import           Lib.Error           (CanPostError, logAndThrow,
                                       _PostBodyEmptyError, _PostNotFoundError,
+                                      _PostTitleEmptyError,
                                       _PostTitleTooLongError)
 import           Lucid.Extended      (Template (Template))
 import           Protolude
@@ -37,6 +38,7 @@ instance FromJSON PostPayload where
 validatePostPayload :: (MonadLogger m, CanPostError e m) => PostPayload -> m ()
 validatePostPayload PostPayload {..} = do
   if T.length ppTitle > 280 then (logAndThrow $ _PostTitleTooLongError # ()) else pure ()
+  if T.length ppTitle == 0 then (logAndThrow $ _PostTitleEmptyError # ()) else pure ()
   if T.length ppBody == 0 then (logAndThrow $ _PostBodyEmptyError # ()) else pure ()
 
 getPostsHandler :: (MonadLogger m, MonadPost m) => m (Template [Post])
