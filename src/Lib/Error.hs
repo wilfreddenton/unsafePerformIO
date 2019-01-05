@@ -46,6 +46,7 @@ data ApiError = NotFoundError Text
               | GetTimeError Text
               | RngError Text
               | UnauthorizedError
+              deriving (Eq, Show)
 makeClassyPrisms ''ApiError
 
 instance HttpStatus ApiError where
@@ -70,6 +71,7 @@ instance ToHtml ApiError where
   toHtml = toHtml'
 
 data DbError = DbSqliteError Text | DbError1
+  deriving (Eq, Show)
 makeClassyPrisms ''DbError
 
 instance HttpStatus DbError where
@@ -89,6 +91,7 @@ instance ToHtml DbError where
 data PostError = PostNotFoundError Text
                | PostTitleTooLongError
                | PostBodyEmptyError
+               deriving (Eq, Show)
 makeClassyPrisms ''PostError
 
 instance HttpStatus PostError where
@@ -111,6 +114,7 @@ instance ToHtml PostError where
 data AppError = AppApiError ApiError
               | AppPostError PostError
               | AppDbError DbError
+              deriving (Eq, Show)
 makeClassyPrisms ''AppError
 
 instance AsApiError AppError where

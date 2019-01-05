@@ -49,3 +49,8 @@ authorizeIO sig clearText = do
     Right [(e, _, _)] -> if errorString e == "Success" then pure () else fail
     Right _           -> fail
   where fail = logAndThrow (_UnauthorizedError # ())
+
+-- Pure
+
+authorizePure :: Monad m => Text -> Text -> m ()
+authorizePure _ _ = pure ()
