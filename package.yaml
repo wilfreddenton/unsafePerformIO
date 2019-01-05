@@ -60,6 +60,10 @@ dependencies:
 - wai-middleware-throttle
 - warp
 
+# Tests
+- tasty
+- tasty-hspec
+
 library:
   source-dirs: src
 

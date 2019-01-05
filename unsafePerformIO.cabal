@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3e81315e3ac8b0f3fb0a35a4611ff3e4a1208723ea96bddb8dd6e2e2988474ce
+-- hash: 2210c43c461be76565aba145bd4614e53c18643060d55e723ba2a563a93e8643
 
 name:           unsafePerformIO
 version:        0.1.0.0
@@ -74,6 +74,8 @@ library
     , servant-lucid
     , servant-server
     , sqlite-simple
+    , tasty
+    , tasty-hspec
     , template-haskell
     , text
     , time
@@ -114,6 +116,8 @@ executable unsafe-perform-io
     , servant-lucid
     , servant-server
     , sqlite-simple
+    , tasty
+    , tasty-hspec
     , template-haskell
     , text
     , time
@@ -127,6 +131,7 @@ test-suite unsafe-perform-io-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Spec.Server
       Paths_unsafePerformIO
   hs-source-dirs:
       test
@@ -155,6 +160,8 @@ test-suite unsafe-perform-io-test
     , servant-lucid
     , servant-server
     , sqlite-simple
+    , tasty
+    , tasty-hspec
     , template-haskell
     , text
     , time
