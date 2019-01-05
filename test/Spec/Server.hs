@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeSynonymInstances       #-}
 
 module Spec.Server (
-  serverSpecs
+  serverSpec
 ) where
 
 import           Control.Lens       (makeClassy)
@@ -26,7 +26,6 @@ import           Lib.Error          (AppError (AppPostError),
 import           Lib.Server.Posts   (PostPayload (PostPayload),
                                      createPostHandler)
 import           Protolude
-import           Test.Tasty         (TestName)
 import           Test.Tasty.Hspec   (Spec, describe, it, shouldReturn)
 
 data MockAppEnv = MockAppEnv {
@@ -68,16 +67,8 @@ runMockApp action = do
   env <- MockAppEnv <$> newDbEnv "test.db"
   runExceptT . flip runReaderT env $ unMockApp action
 
-serverSpecs :: [(TestName, Spec)]
-serverSpecs = [ ("Create Post", createPostSpec)
-              -- , ("Edit Post", editPostSpec)
-              -- , ("Delete Post", deletePostSpec)
-              -- , ("Edit About", editAboutSpec)
-              -- , ("Edit Contact", editContactSpec)
-              ]
-
-createPostSpec :: Spec
-createPostSpec = describe "Create Post Handler" $ do
+serverSpec :: Spec
+serverSpec = describe "Create Post Handler" $ do
   it "should return a PostTitleTooLongError" $ do
     runMockApp (createPostHandler $ Signed "" (PostPayload (T.replicate 281 "c") ""))
       `shouldReturn` Left (AppPostError PostTitleTooLongError)
