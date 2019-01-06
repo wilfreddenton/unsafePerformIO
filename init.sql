@@ -1,5 +1,5 @@
 CREATE TABLE posts (
-       id PRIMARY KEY,
+       id INTEGER PRIMARY KEY,
        slug VARCHAR(291) UNIQUE NOT NULL,
        title VARCHAR(280) NOT NULL,
        created_at VARCHAR(32) NOT NULL,
@@ -7,13 +7,13 @@ CREATE TABLE posts (
 );
 
 CREATE TABLE about (
-       id PRIMARY KEY,
+       id INTEGER PRIMARY KEY,
        title VARCHAR(280) NOT NULL,
        body TEXT NOT NULL
 );
 
 CREATE TABLE contact (
-       id PRIMARY KEY,
+       id INTEGER PRIMARY KEY,
        location VARCHAR(280),
        email VARCHAR(280),
        linked_in VARCHAR(280),

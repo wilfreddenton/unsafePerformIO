@@ -24,7 +24,7 @@ initialize :: ServerEnv -> IO ()
 initialize serverEnv' = bracket makeAppEnv stopApp runApp
   where
     makeAppEnv = do
-      dbEnv <- newDbEnv False (serverEnv'^.sSqliteDatabase) $ serverEnv'^.sInitSql
+      dbEnv <- newDbEnv (serverEnv'^.sSqliteDatabase) $ serverEnv'^.sInitSql
       authEnv <- newAuthEnv (serverEnv'^.sGnuPgHomedir) $ serverEnv'^.sPgpPublicKey
       loggerEnv <- newLoggerEnv
       pure $ AppEnv serverEnv' loggerEnv dbEnv authEnv

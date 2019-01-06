@@ -25,8 +25,7 @@ import           Katip                   (ColorStrategy (ColorIfTerminal),
 import           Katip.Format.Time       (formatAsLogTime)
 import           Lucid.Extended          (ToHtml, pre_, toHtml, toHtmlRaw)
 import           Protolude               hiding (decodeUtf8)
-import           System.Directory        (doesDirectoryExist, doesFileExist,
-                                          removeFile)
+import           System.Directory        (doesDirectoryExist, doesFileExist)
 import           System.Exit             (exitFailure)
 
 data ServerEnv = ServerEnv {
@@ -98,14 +97,13 @@ newAuthEnv homedir pgpKeyFile = do
       pgpKey <- liftIO $ T.readFile pgpKeyFile
       pure . AuthEnv ctx $ PgpKey pgpKey
 
-newDbEnv :: MonadIO m => Bool -> FilePath -> FilePath -> m DbEnv
-newDbEnv overwrite dbPath sqlPath = do
+newDbEnv :: MonadIO m => FilePath -> FilePath -> m DbEnv
+newDbEnv dbPath sqlPath = do
   validateFilePath sqlPath doesFileExist failure (pure ())
   sql <- Query <$> liftIO (T.readFile sqlPath)
   dbExists <- liftIO $ doesFileExist dbPath
-  if dbExists && overwrite then liftIO (removeFile dbPath) else pure ()
   conn <- liftIO $ open dbPath
-  if not dbExists || overwrite then liftIO (execute_ conn sql) else pure ()
+  if not dbExists then liftIO (execute_ conn sql) else pure ()
   pure $ DbEnv conn
   where failure path = putStrLn $ "no SQL file found at filepath: " <> path
 

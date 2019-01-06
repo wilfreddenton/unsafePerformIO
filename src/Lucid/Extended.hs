@@ -50,7 +50,7 @@ colMd4_ = termWith "div" [class_ " col-md-4 "]
 colMd8_ :: Term arg result => arg -> result
 colMd8_ = termWith "div" [class_ " col-md-8 "]
 
-data Template a = Template Text a
+data Template a = Template Text a deriving (Eq, Show)
 
 instance ToJSON a => ToJSON (Template a) where
   toJSON (Template _ a) = toJSON a

@@ -62,7 +62,7 @@ createPostHandler (Signed sig pp@PostPayload {..}) = withNamespace "createPost" 
   validatePostPayload pp
   createdAt <- now
   let slug = makeSlug ppTitle createdAt
-  createPost $ Post Nothing ppTitle slug createdAt ppBody
+  createPost $ Post Nothing slug ppTitle createdAt ppBody
   pure NoContent
 
 editPostHandler :: (MonadLogger m, MonadPost m, MonadAuth m, CanPostError e m) => Int -> Signed PostPayload -> m NoContent
