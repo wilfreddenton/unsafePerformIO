@@ -6,31 +6,34 @@ module Spec.Server (
   serverSpec
 ) where
 
-import           Control.Lens       (makeClassy)
-import qualified Data.Text          as T
-import           Data.Time          (UTCTime (UTCTime), fromGregorian,
-                                     secondsToDiffTime)
-import           Lib.Effects.Auth   (MonadAuth, Signed (Signed), authorize,
-                                     authorizePure)
-import           Lib.Effects.Logger (MonadLogger, debug, error, info, logPure,
-                                     warn, withContext, withContextPure,
-                                     withNamespace, withNamespacePure)
-import           Lib.Effects.Post   (MonadPost, Post (Post), createPost,
-                                     createPostSqlite, deletePost,
-                                     deletePostSqlite, editPost, editPostSqlite,
-                                     getPostById, getPostByIdSqlite,
-                                     getPostBySlug, getPostBySlugSqlite,
-                                     getPosts, getPostsSqlite)
-import           Lib.Effects.Time   (MonadTime, now)
-import           Lib.Env            (DbEnv, HasDbEnv (..), newDbEnv)
-import           Lib.Error          (AppError (AppPostError), PostError (..))
-import           Lib.Server.Posts   (PostPayload (PostPayload),
-                                     createPostHandler, getPostHandler)
-import           Lucid.Extended     (Template (Template))
+import           Control.Lens        (makeClassy)
+import           Data.Aeson.Extended (Value (Null))
+import qualified Data.Text           as T
+import           Data.Time           (UTCTime (UTCTime), fromGregorian,
+                                      secondsToDiffTime)
+import           Lib.Effects.Auth    (MonadAuth, Signed (Signed), authorize,
+                                      authorizePure)
+import           Lib.Effects.Logger  (MonadLogger, debug, error, info, logPure,
+                                      warn, withContext, withContextPure,
+                                      withNamespace, withNamespacePure)
+import           Lib.Effects.Post    (MonadPost, Post (Post), createPost,
+                                      createPostSqlite, deletePost,
+                                      deletePostSqlite, editPost,
+                                      editPostSqlite, getPostById,
+                                      getPostByIdSqlite, getPostBySlug,
+                                      getPostBySlugSqlite, getPosts,
+                                      getPostsSqlite, makeSlug)
+import           Lib.Effects.Time    (MonadTime, now)
+import           Lib.Env             (DbEnv, HasDbEnv (..), newDbEnv)
+import           Lib.Error           (AppError (AppPostError), PostError (..))
+import           Lib.Server.Posts    (PostPayload (PostPayload),
+                                      createPostHandler, deletePostHandler,
+                                      editPostHandler, getPostHandler)
+import           Lucid.Extended      (Template (Template))
 import           Protolude
-import           Servant            (NoContent (NoContent))
-import           System.Directory   (removeFile)
-import           Test.Tasty.Hspec   (Spec, before_, describe, it, shouldReturn)
+import           Servant             (NoContent (NoContent))
+import           System.Directory    (removeFile)
+import           Test.Tasty.Hspec    (Spec, before_, describe, it, shouldReturn)
 
 data MockAppEnv = MockAppEnv {
   _mockAppDbEnv :: DbEnv
@@ -80,29 +83,53 @@ resetDb = removeFile "test.db"
 serverSpec :: Spec
 serverSpec = before_ resetDb $ do
   let runCreatePostHandler title body = runMockApp (createPostHandler $ Signed "" (PostPayload title body))
+      runGetPostHandler slug = runMockApp (getPostHandler slug)
       postError = Left . AppPostError
+      postSuccess name = Right . Template name
+      testInvalidTitle = T.replicate 281 "c"
       testTitle = "title"
       testBody = "body"
-      testSlug = "1994-01-31-" <> testTitle
+      testSlug = makeSlug testTitle testTime
   describe "Create Post Handler" $ do
     it "returns a PostTitleTooLongError" $
-      runCreatePostHandler (T.replicate 281 "c") "" `shouldReturn` postError PostTitleTooLongError
-    it "returns a PostTitleEmptyError" $ do
+      runCreatePostHandler testInvalidTitle "" `shouldReturn` postError PostTitleTooLongError
+    it "returns a PostTitleEmptyError" $
       runCreatePostHandler "" "" `shouldReturn` postError PostTitleEmptyError
-    it "returns a PostBodyEmptyError" $ do
+    it "returns a PostBodyEmptyError" $
       runCreatePostHandler testTitle "" `shouldReturn` postError PostBodyEmptyError
-    it "returns NoContent" $ do
+    it "successfully creates a Post" $ do
       runCreatePostHandler testTitle testBody `shouldReturn` Right NoContent
-      runMockApp (getPostHandler testSlug)
-        `shouldReturn` Right (Template "Post" $ Post (Just 1) testSlug testTitle testTime testBody)
+      runGetPostHandler testSlug
+        `shouldReturn` postSuccess "Post" (Post (Just 1) testSlug testTitle testTime testBody)
 
+  let runEditPostHandler id title body = runMockApp (editPostHandler id $ Signed "" (PostPayload title body))
+      newTestTitle = "new title"
+      newTestBody = "new body"
+      newTestSlug = makeSlug newTestTitle testTime
   describe "Edit Post Handler" $ do
-    it "should return a PostBodyEmptyError" $ do
-      runMockApp (createPostHandler $ Signed "" (PostPayload "title" ""))
-        `shouldReturn` Left (AppPostError PostBodyEmptyError)
+    it "returns a PostTitleTooLongError" $
+      runEditPostHandler 1 testInvalidTitle "" `shouldReturn` postError PostTitleTooLongError
+    it "returns a PostTitleEmptyError" $
+      runEditPostHandler 1 "" "" `shouldReturn` postError PostTitleEmptyError
+    it "returns a PostBodyEmptyError" $
+      runEditPostHandler 1 testTitle "" `shouldReturn` postError PostBodyEmptyError
+    it "returns a PostNotFoundError" $
+      runEditPostHandler 1 newTestTitle newTestBody `shouldReturn` postError (PostNotFoundError "1")
+    it "successfully edits a Post" $ do
+      runCreatePostHandler testTitle testBody `shouldReturn` Right NoContent
+      runEditPostHandler 1 newTestTitle newTestBody `shouldReturn` Right NoContent
+      runGetPostHandler newTestSlug
+        `shouldReturn` postSuccess "Post" (Post (Just 1) newTestSlug newTestTitle testTime newTestBody)
 
--- editPostSpec :: Spec
--- editPostSpec = undefined
+  let runDeletePostHandler id = runMockApp (deletePostHandler id $ Signed "" Null)
+  describe "Delete Post Handler" $ do
+    it "returns a PostNotFoundError" $
+      runDeletePostHandler 1 `shouldReturn` postError (PostNotFoundError "1")
+    it "successfully deletes Post" $ do
+      runCreatePostHandler testTitle testBody `shouldReturn` Right NoContent
+      runDeletePostHandler 1 `shouldReturn` Right NoContent
+      runGetPostHandler newTestSlug
+        `shouldReturn` postError (PostNotFoundError newTestSlug)
 
 -- deletePostSpec :: Spec
 -- deletePostSpec = undefined
