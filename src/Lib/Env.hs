@@ -12,7 +12,8 @@ import           Data.Aeson.Extended     (ToJSON, encode, genericToJSON, object,
 import qualified Data.Text.IO            as T
 import           Data.Text.Lazy.Builder  (fromText, toLazyText)
 import           Data.Text.Lazy.Encoding (decodeUtf8)
-import           Database.SQLite.Simple  (Connection, open)
+import           Database.SQLite.Simple  (Connection, Query (Query), execute_,
+                                          open)
 import           Katip                   (ColorStrategy (ColorIfTerminal),
                                           Item (..), ItemFormatter, LogContexts,
                                           LogEnv, LogItem, Namespace,
@@ -24,12 +25,14 @@ import           Katip                   (ColorStrategy (ColorIfTerminal),
 import           Katip.Format.Time       (formatAsLogTime)
 import           Lucid.Extended          (ToHtml, pre_, toHtml, toHtmlRaw)
 import           Protolude               hiding (decodeUtf8)
-import           System.Directory        (doesDirectoryExist, doesFileExist)
+import           System.Directory        (doesDirectoryExist, doesFileExist,
+                                          removeFile)
 import           System.Exit             (exitFailure)
 
 data ServerEnv = ServerEnv {
   _sPort           :: Int
 , _sSqliteDatabase :: FilePath
+, _sInitSql        :: FilePath
 , _sGnuPgHomedir   :: FilePath
 , _sPgpPublicKey   :: FilePath
 } deriving Generic
@@ -95,13 +98,16 @@ newAuthEnv homedir pgpKeyFile = do
       pgpKey <- liftIO $ T.readFile pgpKeyFile
       pure . AuthEnv ctx $ PgpKey pgpKey
 
-newDbEnv :: MonadIO m => FilePath -> m DbEnv
-newDbEnv path = validateFilePath path doesFileExist failure success
-  where
-    failure path' = putStrLn $ "no sqlite database found at filepath: " <> path'
-    success = do
-      conn <- liftIO $ open path
-      pure $ DbEnv conn
+newDbEnv :: MonadIO m => Bool -> FilePath -> FilePath -> m DbEnv
+newDbEnv overwrite dbPath sqlPath = do
+  validateFilePath sqlPath doesFileExist failure (pure ())
+  sql <- Query <$> liftIO (T.readFile sqlPath)
+  dbExists <- liftIO $ doesFileExist dbPath
+  if dbExists && overwrite then liftIO (removeFile dbPath) else pure ()
+  conn <- liftIO $ open dbPath
+  if not dbExists || overwrite then liftIO (execute_ conn sql) else pure ()
+  pure $ DbEnv conn
+  where failure path = putStrLn $ "no SQL file found at filepath: " <> path
 
 newLoggerEnv :: MonadIO m => m LoggerEnv
 newLoggerEnv = do

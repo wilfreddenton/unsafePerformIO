@@ -24,7 +24,12 @@ command = ServerEnv <$> option auto (
   long "sqlite" <>
   short 's' <>
   metavar "SQLITE DATABASE" <>
-  help "File path of the sqlite database"
+  help "Filepath of the SQLite database"
+  ) <*> strOption (
+  long "init-sql" <>
+  short 'i' <>
+  metavar "Database initialization SQL file" <>
+  help "Filepath of the initialization SQL"
   ) <*> strOption (
   long "gnupg-homedir" <>
   short 'h' <>
@@ -34,5 +39,5 @@ command = ServerEnv <$> option auto (
   long "pgp-public-key" <>
   short 'k' <>
   metavar "PGP PUBLIC KEY" <>
-  help "File path of the pgp public key"
+  help "Filepath of the pgp public key"
   )

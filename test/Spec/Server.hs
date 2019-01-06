@@ -68,16 +68,15 @@ runMockApp action = do
 
 serverSpec :: Spec
 serverSpec = do
+  let runCreatePostHandler title body = runMockApp (createPostHandler $ Signed "" (PostPayload title body))
+      postError = Left . AppPostError
   describe "Create Post Handler" $ do
-    it "should return a PostTitleTooLongError" $ do
-      runMockApp (createPostHandler $ Signed "" (PostPayload (T.replicate 281 "c") ""))
-        `shouldReturn` Left (AppPostError PostTitleTooLongError)
+    it "should return a PostTitleTooLongError" $
+      runCreatePostHandler (T.replicate 281 "c") "" `shouldReturn` postError PostTitleTooLongError
     it "should return a PostTitleEmptyError" $ do
-      runMockApp (createPostHandler $ Signed "" (PostPayload "" ""))
-        `shouldReturn` Left (AppPostError PostTitleEmptyError)
+      runCreatePostHandler "" "" `shouldReturn` postError PostTitleEmptyError
     it "should return a PostBodyEmptyError" $ do
-      runMockApp (createPostHandler $ Signed "" (PostPayload "title" ""))
-        `shouldReturn` Left (AppPostError PostBodyEmptyError)
+      runCreatePostHandler "title" "" `shouldReturn` postError PostBodyEmptyError
 
   describe "Edit Post Handler" $ do
     it "should return a PostBodyEmptyError" $ do

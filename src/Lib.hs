@@ -8,9 +8,9 @@ import           Lib.Effects.Logger              (infoKatip, withContextKatip)
 import           Lib.Env                         (AppEnv (AppEnv), ServerEnv,
                                                   dConn, lLogEnv, newAuthEnv,
                                                   newDbEnv, newLoggerEnv,
-                                                  sGnuPgHomedir, sPgpPublicKey,
-                                                  sPort, sSqliteDatabase,
-                                                  serverEnv)
+                                                  sGnuPgHomedir, sInitSql,
+                                                  sPgpPublicKey, sPort,
+                                                  sSqliteDatabase, serverEnv)
 import           Lib.Server                      (app)
 import           Network.Wai.Handler.Warp        (run)
 import           Network.Wai.Middleware.Throttle (defaultThrottleSettings,
@@ -24,7 +24,7 @@ initialize :: ServerEnv -> IO ()
 initialize serverEnv' = bracket makeAppEnv stopApp runApp
   where
     makeAppEnv = do
-      dbEnv <- newDbEnv $ serverEnv'^.sSqliteDatabase
+      dbEnv <- newDbEnv False (serverEnv'^.sSqliteDatabase) $ serverEnv'^.sInitSql
       authEnv <- newAuthEnv (serverEnv'^.sGnuPgHomedir) $ serverEnv'^.sPgpPublicKey
       loggerEnv <- newLoggerEnv
       pure $ AppEnv serverEnv' loggerEnv dbEnv authEnv
