@@ -102,7 +102,7 @@ instance ToHtml Contact where
 data About = About {
   aTitle :: Text
 , aBody  :: Text
-} deriving Generic
+} deriving (Eq, Show, Generic)
 
 instance FromRow About where
   fromRow = About <$> field <*> field

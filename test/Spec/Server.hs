@@ -13,7 +13,7 @@ import           Data.Time           (UTCTime (UTCTime), fromGregorian,
                                       secondsToDiffTime)
 import           Lib.Effects.Auth    (MonadAuth, Signed (Signed), authorize,
                                       authorizePure)
-import           Lib.Effects.Author  (About (About), Contact (Contact),
+import           Lib.Effects.Author  (About (About), Contact (..),
                                       Email (Email),
                                       FacebookMessenger (FacebookMessenger),
                                       Instagram (Instagram),
@@ -38,8 +38,8 @@ import           Lib.Env             (DbEnv, HasDbEnv (..), newDbEnv)
 import           Lib.Error           (ApiError (FieldTooLongError, NotFoundError),
                                       AppError (AppApiError),
                                       AppError (AppPostError), PostError (..))
-import           Lib.Server.Author   (contactHandler, editAboutHandler,
-                                      editContactHandler)
+import           Lib.Server.Author   (editAboutHandler, editContactHandler,
+                                      getAboutHandler, getContactHandler)
 import           Lib.Server.Posts    (PostPayload (PostPayload),
                                       createPostHandler, deletePostHandler,
                                       editPostHandler, getPostHandler)
@@ -154,20 +154,37 @@ serverSpec = before_ resetDb $ do
       runGetPostHandler newTestSlug
         `shouldReturn` postError (PostNotFoundError newTestSlug)
 
-  let runEditAboutHandler about = runMockApp (editAboutHandler $ Signed "" about)
+  let runGetAboutHandler = runMockApp getAboutHandler
       apiError = Left . AppApiError
+  describe "Get About Handler" $
+    it "returns NotFoundError" $
+      runGetAboutHandler `shouldReturn` apiError (NotFoundError "about")
+
+  let runEditAboutHandler about = runMockApp (editAboutHandler $ Signed "" about)
+      testAbout = About "title" "body"
+      newTestAbout = About "newtitle" "newbody"
+      aboutSucces = Right . Template "About"
   describe "Edit About Handler" $ do
     it "returns FieldTooLongError" $
-      runEditAboutHandler (About testInvalidTitle "")`shouldReturn` apiError (FieldTooLongError "title")
+      runEditAboutHandler (About testInvalidTitle "") `shouldReturn` apiError (FieldTooLongError "title")
+    it "creates and edits About" $ do
+      runEditAboutHandler testAbout `shouldReturn` Right NoContent
+      runGetAboutHandler `shouldReturn` aboutSucces testAbout
+      runEditAboutHandler newTestAbout `shouldReturn` Right NoContent
+      runGetAboutHandler `shouldReturn` aboutSucces newTestAbout
 
-  let runEditContactHandler contact = runMockApp (editContactHandler $ Signed "" contact)
-      runGetContactHandler = runMockApp contactHandler
+  let runGetContactHandler = runMockApp getContactHandler
       newContact l e li f i = Contact (MyLocation l) (Email e) (LinkedIn li) (FacebookMessenger f) (Instagram i)
       testContact = newContact "location" "email" "linked_in" "facebook_messenger" "instagram"
       contactSuccess = Right . Template "Contact"
-  describe "Get Contact Handler" $ do
-    it "returns NotFoundError" $ do
+  describe "Get Contact Handler" $
+    it "returns NotFoundError" $
       runGetContactHandler `shouldReturn` apiError (NotFoundError "contact")
+
+  let runEditContactHandler contact = runMockApp (editContactHandler $ Signed "" contact)
+      newTestContactE = Email "new_email"
+      newTestContactFm = FacebookMessenger "new_facebook_messenger"
+      newTestContact = testContact { cEmail = newTestContactE, cFacebookMessenger = newTestContactFm }
   describe "Edit Contact Handler" $ do
     it "returns FieldTooLongError" $ do
       runEditContactHandler (newContact testInvalidTitle "" "" "" "") `shouldReturn` apiError (FieldTooLongError "location")
@@ -175,16 +192,8 @@ serverSpec = before_ resetDb $ do
       runEditContactHandler (newContact "" "" testInvalidTitle "" "") `shouldReturn` apiError (FieldTooLongError "location")
       runEditContactHandler (newContact "" "" "" testInvalidTitle "") `shouldReturn` apiError (FieldTooLongError "location")
       runEditContactHandler (newContact "" "" "" "" testInvalidTitle) `shouldReturn` apiError (FieldTooLongError "location")
-
-    it "creates Contact" $ do
+    it "creates and edits Contact" $ do
       runEditContactHandler testContact `shouldReturn` Right NoContent
       runGetContactHandler `shouldReturn` contactSuccess testContact
-
--- deletePostSpec :: Spec
--- deletePostSpec = undefined
-
--- editAboutSpec :: Spec
--- editAboutSpec = undefined
-
--- editContactSpec :: Spec
--- editContactSpec = undefined
+      runEditContactHandler newTestContact `shouldReturn` Right NoContent
+      runGetContactHandler `shouldReturn` contactSuccess newTestContact

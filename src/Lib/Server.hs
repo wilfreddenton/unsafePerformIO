@@ -18,9 +18,9 @@ import           Lib.Env               (AppEnv, HasLoggerEnv)
 import           Lib.Error             (errorMessage, toHttpError,
                                         _NotFoundError)
 import           Lib.Server.Api        (API)
-import           Lib.Server.Author     (aboutHandler, authorHandler,
-                                        contactHandler, editAboutHandler,
-                                        editContactHandler, pgpKeyHandler)
+import           Lib.Server.Author     (authorHandler, editAboutHandler,
+                                        editContactHandler, getAboutHandler,
+                                        getContactHandler, pgpKeyHandler)
 import           Lib.Server.Posts      (createPostHandler, deletePostHandler,
                                         editPostHandler, getPostHandler,
                                         getPostsHandler)
@@ -49,10 +49,10 @@ serverT env =
     editPostHandler :<|>
     deletePostHandler
   ) :<|> (
-    aboutHandler :<|>
+    getAboutHandler :<|>
     editAboutHandler
   ) :<|> (
-    contactHandler :<|>
+    getContactHandler :<|>
     editContactHandler
   ) :<|>
   pgpKeyHandler :<|>

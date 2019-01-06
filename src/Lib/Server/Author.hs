@@ -53,8 +53,8 @@ baseHandler title action = withNamespace loweredTitle $ do
     Just a  -> pure $ Template title a
   where loweredTitle = T.toLower title
 
-aboutHandler :: CanAuthor e m => m (Template About)
-aboutHandler = baseHandler "About" $ getAbout
+getAboutHandler :: CanAuthor e m => m (Template About)
+getAboutHandler = baseHandler "About" $ getAbout
 
 editAboutHandler :: (CanAuthor e m, MonadAuth m) => Signed About -> m NoContent
 editAboutHandler (Signed sig about@About{..}) = withNamespace "editAbout" $ do
@@ -64,8 +64,8 @@ editAboutHandler (Signed sig about@About{..}) = withNamespace "editAbout" $ do
   editAbout about
   pure NoContent
 
-contactHandler :: CanAuthor e m => m (Template Contact)
-contactHandler = baseHandler "Contact" getContact
+getContactHandler :: CanAuthor e m => m (Template Contact)
+getContactHandler = baseHandler "Contact" getContact
 
 editContactHandler :: (CanAuthor e m, MonadAuth m) => Signed Contact -> m NoContent
 editContactHandler (Signed sig contact@Contact{..}) = withNamespace "editContact" $ do
