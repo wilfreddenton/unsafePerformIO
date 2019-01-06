@@ -9,6 +9,7 @@ import           Control.Lens            (makeClassy)
 import           Crypto.Gpgme            (Ctx, Protocol (OpenPGP), newCtx)
 import           Data.Aeson.Extended     (ToJSON, encode, genericToJSON, object,
                                           snakeNoPrefix, toJSON, (.=))
+import qualified Data.Text               as T
 import qualified Data.Text.IO            as T
 import           Data.Text.Lazy.Builder  (fromText, toLazyText)
 import           Data.Text.Lazy.Encoding (decodeUtf8)
@@ -100,12 +101,14 @@ newAuthEnv homedir pgpKeyFile = do
 newDbEnv :: MonadIO m => FilePath -> FilePath -> m DbEnv
 newDbEnv dbPath sqlPath = do
   validateFilePath sqlPath doesFileExist failure (pure ())
-  sql <- Query <$> liftIO (T.readFile sqlPath)
+  statements <- T.splitOn ";" . T.strip <$> liftIO (T.readFile sqlPath)
+  let statements' = filter ((/=) "") statements
   dbExists <- liftIO $ doesFileExist dbPath
   conn <- liftIO $ open dbPath
-  if not dbExists then liftIO (execute_ conn sql) else pure ()
+  if not dbExists then liftIO (traverse_ (runStatement conn) statements') else pure ()
   pure $ DbEnv conn
-  where failure path = putStrLn $ "no SQL file found at filepath: " <> path
+  where runStatement conn statement = execute_ conn $ Query statement
+        failure path = putStrLn $ "no SQL file found at filepath: " <> path
 
 newLoggerEnv :: MonadIO m => m LoggerEnv
 newLoggerEnv = do

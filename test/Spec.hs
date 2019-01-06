@@ -8,5 +8,5 @@ import           Test.Tasty.Hspec (testSpec)
 main :: IO ()
 main = do
   serverTree <- testSpec "Server Spec" serverSpec
-  defaultMain $ testGroup "specs"
+  defaultMain $ testGroup "Specs"
     [serverTree]

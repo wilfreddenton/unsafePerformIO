@@ -45,6 +45,7 @@ data ApiError = NotFoundError Text
               | AuthorizationFailedError Text
               | GetTimeError Text
               | RngError Text
+              | FieldTooLongError Text
               | UnauthorizedError
               deriving (Eq, Show)
 makeClassyPrisms ''ApiError
@@ -54,6 +55,7 @@ instance HttpStatus ApiError where
   httpStatus (AuthorizationFailedError _) = status500
   httpStatus (GetTimeError _)             = status500
   httpStatus (RngError _)                 = status500
+  httpStatus (FieldTooLongError _)        = status400
   httpStatus UnauthorizedError            = status401
 
 instance ErrorMessage ApiError where
@@ -61,6 +63,7 @@ instance ErrorMessage ApiError where
   errorMessage (AuthorizationFailedError err) = "Authorization of request failed with error: " <> err
   errorMessage (GetTimeError err) = "Could not complete request because getting current time failed with error: " <> err
   errorMessage (RngError err) = "Could not complete request because generating random bytes failed with error: " <> err
+  errorMessage (FieldTooLongError name) = "Value too long in field: " <> name
   errorMessage UnauthorizedError              = "Unauthorized request"
 
 instance ToJSON ApiError where

@@ -13,6 +13,16 @@ import           Data.Time           (UTCTime (UTCTime), fromGregorian,
                                       secondsToDiffTime)
 import           Lib.Effects.Auth    (MonadAuth, Signed (Signed), authorize,
                                       authorizePure)
+import           Lib.Effects.Author  (About (About), Contact (Contact),
+                                      Email (Email),
+                                      FacebookMessenger (FacebookMessenger),
+                                      Instagram (Instagram),
+                                      LinkedIn (LinkedIn), MonadAuthor,
+                                      MyLocation (MyLocation), editAbout,
+                                      editAboutSqlite, editContact,
+                                      editContactSqlite, getAbout,
+                                      getAboutSqlite, getContact,
+                                      getContactSqlite)
 import           Lib.Effects.Logger  (MonadLogger, debug, error, info, logPure,
                                       warn, withContext, withContextPure,
                                       withNamespace, withNamespacePure)
@@ -25,14 +35,18 @@ import           Lib.Effects.Post    (MonadPost, Post (Post), createPost,
                                       getPostsSqlite, makeSlug)
 import           Lib.Effects.Time    (MonadTime, now)
 import           Lib.Env             (DbEnv, HasDbEnv (..), newDbEnv)
-import           Lib.Error           (AppError (AppPostError), PostError (..))
+import           Lib.Error           (ApiError (FieldTooLongError, NotFoundError),
+                                      AppError (AppApiError),
+                                      AppError (AppPostError), PostError (..))
+import           Lib.Server.Author   (contactHandler, editAboutHandler,
+                                      editContactHandler)
 import           Lib.Server.Posts    (PostPayload (PostPayload),
                                       createPostHandler, deletePostHandler,
                                       editPostHandler, getPostHandler)
 import           Lucid.Extended      (Template (Template))
 import           Protolude
 import           Servant             (NoContent (NoContent))
-import           System.Directory    (removeFile)
+import           System.Directory    (doesFileExist, removeFile)
 import           Test.Tasty.Hspec    (Spec, before_, describe, it, shouldReturn)
 
 data MockAppEnv = MockAppEnv {
@@ -72,13 +86,22 @@ instance MonadPost MockApp where
   editPost = editPostSqlite
   deletePost = deletePostSqlite
 
+instance MonadAuthor MockApp where
+  getAbout = getAboutSqlite
+  editAbout = editAboutSqlite
+  getContact = getContactSqlite
+  editContact = editContactSqlite
+
 runMockApp :: MockApp a -> IO (Either AppError a)
 runMockApp action = do
   env <- MockAppEnv <$> newDbEnv "test.db" "init.sql"
   runExceptT . flip runReaderT env $ unMockApp action
 
 resetDb :: IO ()
-resetDb = removeFile "test.db"
+resetDb = do
+  b <- doesFileExist file
+  if b then removeFile file else pure ()
+  where file = "test.db"
 
 serverSpec :: Spec
 serverSpec = before_ resetDb $ do
@@ -91,13 +114,13 @@ serverSpec = before_ resetDb $ do
       testBody = "body"
       testSlug = makeSlug testTitle testTime
   describe "Create Post Handler" $ do
-    it "returns a PostTitleTooLongError" $
+    it "returns PostTitleTooLongError" $
       runCreatePostHandler testInvalidTitle "" `shouldReturn` postError PostTitleTooLongError
-    it "returns a PostTitleEmptyError" $
+    it "returns PostTitleEmptyError" $
       runCreatePostHandler "" "" `shouldReturn` postError PostTitleEmptyError
-    it "returns a PostBodyEmptyError" $
+    it "returns PostBodyEmptyError" $
       runCreatePostHandler testTitle "" `shouldReturn` postError PostBodyEmptyError
-    it "successfully creates a Post" $ do
+    it "creates Post" $ do
       runCreatePostHandler testTitle testBody `shouldReturn` Right NoContent
       runGetPostHandler testSlug
         `shouldReturn` postSuccess "Post" (Post (Just 1) testSlug testTitle testTime testBody)
@@ -107,15 +130,15 @@ serverSpec = before_ resetDb $ do
       newTestBody = "new body"
       newTestSlug = makeSlug newTestTitle testTime
   describe "Edit Post Handler" $ do
-    it "returns a PostTitleTooLongError" $
+    it "returns PostTitleTooLongError" $
       runEditPostHandler 1 testInvalidTitle "" `shouldReturn` postError PostTitleTooLongError
-    it "returns a PostTitleEmptyError" $
+    it "returns PostTitleEmptyError" $
       runEditPostHandler 1 "" "" `shouldReturn` postError PostTitleEmptyError
-    it "returns a PostBodyEmptyError" $
+    it "returns PostBodyEmptyError" $
       runEditPostHandler 1 testTitle "" `shouldReturn` postError PostBodyEmptyError
-    it "returns a PostNotFoundError" $
+    it "returns PostNotFoundError" $
       runEditPostHandler 1 newTestTitle newTestBody `shouldReturn` postError (PostNotFoundError "1")
-    it "successfully edits a Post" $ do
+    it "edits Post" $ do
       runCreatePostHandler testTitle testBody `shouldReturn` Right NoContent
       runEditPostHandler 1 newTestTitle newTestBody `shouldReturn` Right NoContent
       runGetPostHandler newTestSlug
@@ -123,13 +146,39 @@ serverSpec = before_ resetDb $ do
 
   let runDeletePostHandler id = runMockApp (deletePostHandler id $ Signed "" Null)
   describe "Delete Post Handler" $ do
-    it "returns a PostNotFoundError" $
+    it "returns PostNotFoundError" $
       runDeletePostHandler 1 `shouldReturn` postError (PostNotFoundError "1")
-    it "successfully deletes Post" $ do
+    it "deletes Post" $ do
       runCreatePostHandler testTitle testBody `shouldReturn` Right NoContent
       runDeletePostHandler 1 `shouldReturn` Right NoContent
       runGetPostHandler newTestSlug
         `shouldReturn` postError (PostNotFoundError newTestSlug)
+
+  let runEditAboutHandler about = runMockApp (editAboutHandler $ Signed "" about)
+      apiError = Left . AppApiError
+  describe "Edit About Handler" $ do
+    it "returns FieldTooLongError" $
+      runEditAboutHandler (About testInvalidTitle "")`shouldReturn` apiError (FieldTooLongError "title")
+
+  let runEditContactHandler contact = runMockApp (editContactHandler $ Signed "" contact)
+      runGetContactHandler = runMockApp contactHandler
+      newContact l e li f i = Contact (MyLocation l) (Email e) (LinkedIn li) (FacebookMessenger f) (Instagram i)
+      testContact = newContact "location" "email" "linked_in" "facebook_messenger" "instagram"
+      contactSuccess = Right . Template "Contact"
+  describe "Get Contact Handler" $ do
+    it "returns NotFoundError" $ do
+      runGetContactHandler `shouldReturn` apiError (NotFoundError "contact")
+  describe "Edit Contact Handler" $ do
+    it "returns FieldTooLongError" $ do
+      runEditContactHandler (newContact testInvalidTitle "" "" "" "") `shouldReturn` apiError (FieldTooLongError "location")
+      runEditContactHandler (newContact "" testInvalidTitle "" "" "") `shouldReturn` apiError (FieldTooLongError "location")
+      runEditContactHandler (newContact "" "" testInvalidTitle "" "") `shouldReturn` apiError (FieldTooLongError "location")
+      runEditContactHandler (newContact "" "" "" testInvalidTitle "") `shouldReturn` apiError (FieldTooLongError "location")
+      runEditContactHandler (newContact "" "" "" "" testInvalidTitle) `shouldReturn` apiError (FieldTooLongError "location")
+
+    it "creates Contact" $ do
+      runEditContactHandler testContact `shouldReturn` Right NoContent
+      runGetContactHandler `shouldReturn` contactSuccess testContact
 
 -- deletePostSpec :: Spec
 -- deletePostSpec = undefined
