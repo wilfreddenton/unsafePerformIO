@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cc419b948bbb5c6c87177ff24549afc11718a32ec73734b51b875e085578f00a
+-- hash: 7c1cfb8222d29d8c7966e4f3d348adcef2b9c340e2a7e4c5d59c62e2d6d412f7
 
 name:           unsafePerformIO
 version:        0.1.0.0
@@ -52,7 +52,8 @@ library
   default-extensions: NoImplicitPrelude OverloadedStrings
   ghc-options: -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Wall -Werror
   build-depends:
-      aeson
+      QuickCheck
+    , aeson
     , aeson-casing
     , base >=4.7 && <5
     , base16-bytestring
@@ -62,6 +63,7 @@ library
     , cryptonite
     , directory
     , h-gpgme
+    , hspec-core
     , http-types
     , katip
     , lens
@@ -70,6 +72,7 @@ library
     , mmark
     , optparse-applicative
     , protolude
+    , quickcheck-instances
     , servant
     , servant-lucid
     , servant-server
@@ -94,7 +97,8 @@ executable unsafe-perform-io
   default-extensions: NoImplicitPrelude OverloadedStrings
   ghc-options: -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      QuickCheck
+    , aeson
     , aeson-casing
     , base >=4.7 && <5
     , base16-bytestring
@@ -104,6 +108,7 @@ executable unsafe-perform-io
     , cryptonite
     , directory
     , h-gpgme
+    , hspec-core
     , http-types
     , katip
     , lens
@@ -112,6 +117,7 @@ executable unsafe-perform-io
     , mmark
     , optparse-applicative
     , protolude
+    , quickcheck-instances
     , servant
     , servant-lucid
     , servant-server
@@ -139,7 +145,8 @@ test-suite unsafe-perform-io-test
   default-extensions: NoImplicitPrelude OverloadedStrings
   ghc-options: -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      QuickCheck
+    , aeson
     , aeson-casing
     , base >=4.7 && <5
     , base16-bytestring
@@ -149,6 +156,7 @@ test-suite unsafe-perform-io-test
     , cryptonite
     , directory
     , h-gpgme
+    , hspec-core
     , http-types
     , katip
     , lens
@@ -157,6 +165,7 @@ test-suite unsafe-perform-io-test
     , mmark
     , optparse-applicative
     , protolude
+    , quickcheck-instances
     , servant
     , servant-lucid
     , servant-server

@@ -61,6 +61,9 @@ dependencies:
 - warp
 
 # Tests
+- hspec-core
+- QuickCheck
+- quickcheck-instances
 - tasty
 - tasty-hspec
 
