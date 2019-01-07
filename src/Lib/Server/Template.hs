@@ -79,14 +79,16 @@ instance ToHtml AuthorTemplate where
           form_ [id_ "post-form", class_ "hidden"] $ do
             input_ [type_ "text", name_ "title", placeholder_ "Title"]
             textarea_ [type_ "text", name_ "body", placeholder_ "Body"] ""
-            button_ [id_ "submit", href_ ""] "submit"
+            button_ [href_ ""] "submit"
         row_ . col_ $ do
           let editPostForm :: Monad m => Post -> HtmlT m ()
               editPostForm Post{..} = row_ . col_ $ do
                 h3_ [class_ "toggle"] $ toHtml pTitle
-                form_ [class_ "hidden"] $ do
+                form_ [id_ "edit-form", class_ "hidden"] $ do
+                  input_ [type_ "hidden", name_ "id", value_ . show $ fromMaybe 0 pId]
                   input_ [type_ "text", name_ "title", placeholder_ "Title", value_ pTitle]
                   textarea_ [type_ "text", name_ "body", placeholder_ "Body", value_ pBody] ""
+                  button_ [href_ ""] "submit"
           h3_ [class_ "toggle"] "Edit Posts"
           div_ [class_ "hidden"] $ foldMap editPostForm posts
         row_ . col_ $ do
