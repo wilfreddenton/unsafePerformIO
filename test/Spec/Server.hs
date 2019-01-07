@@ -43,7 +43,7 @@ import           Lib.Server.Author   (editAboutHandler, editContactHandler,
 import           Lib.Server.Posts    (PostPayload (PostPayload),
                                       createPostHandler, deletePostHandler,
                                       editPostHandler, getPostHandler)
-import           Lucid.Extended      (Template (Template))
+import           Lib.Server.Template (Template (Template))
 import           Protolude
 import           Servant             (NoContent (NoContent))
 import           System.Directory    (doesFileExist, removeFile)
