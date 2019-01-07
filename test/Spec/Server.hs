@@ -47,7 +47,8 @@ import           Lib.Server.Template (Template (Template))
 import           Protolude
 import           Servant             (NoContent (NoContent))
 import           System.Directory    (doesFileExist, removeFile)
-import           Test.Tasty.Hspec    (Spec, before_, describe, it, shouldReturn)
+import           Test.Tasty.Hspec    (Spec, afterAll_, before_, describe, it,
+                                      shouldReturn)
 
 data MockAppEnv = MockAppEnv {
   _mockAppDbEnv :: DbEnv
@@ -104,7 +105,7 @@ resetDb = do
   where file = "test.db"
 
 serverSpec :: Spec
-serverSpec = before_ resetDb $ do
+serverSpec = before_ resetDb $ afterAll_ resetDb $ do
   let runCreatePostHandler title body = runMockApp (createPostHandler $ Signed "" (PostPayload title body))
       runGetPostHandler slug = runMockApp (getPostHandler slug)
       postError = Left . AppPostError
