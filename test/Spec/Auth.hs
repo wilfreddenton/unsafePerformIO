@@ -85,13 +85,13 @@ authSpec = do
       runMockApp (authorize sig clearText) `shouldReturn` failure
 
     bobCtx <- runIO $ newCtx bobHomedir "C" OpenPGP
-    modifyMaxSuccess (const n) . it "does not authorize a invalid signature" . property $ \clearText -> do
+    modifyMaxSuccess (const n) . it "does not authorize signatures created by another key" . property $ \clearText -> do
       let action = do
             sig <- makeSignature bobCtx clearText
             authorize sig clearText
       runMockApp action `shouldReturn` failure
 
-    modifyMaxSuccess (const n) . it "does authorize valid signatures" . property $ \clearText -> do
+    modifyMaxSuccess (const n) . it "does authorize valid signatures created by the same key" . property $ \clearText -> do
       let action = do
             ctx <- view aCtx
             sig <- makeSignature ctx clearText
