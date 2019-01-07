@@ -1,8 +1,8 @@
 This is a revocation certificate for the OpenPGP key:
 
 pub   rsa4096 2019-01-07 [S]
-      DE87C23F70416198A3160D65D11F273AF8EAC2A2
-uid          tester (test key pair) <test@test.com>
+      ABB75B2868DBB64538C01B6D1D646763A5B8596D
+uid          bobby (test key) <bobby@test.com>
 
 A revocation certificate is a kind of "kill switch" to publicly
 declare that a key shall not anymore be used.  It is not possible
@@ -21,17 +21,17 @@ before importing and publishing this revocation certificate.
 :-----BEGIN PGP PUBLIC KEY BLOCK-----
 Comment: This is a revocation certificate
 
-iQI2BCABCAAgFiEE3ofCP3BBYZijFg1l0R8nOvjqwqIFAlwy4kECHQAACgkQ0R8n
-OvjqwqIz1RAAqBuov1GA8BI7EMKUnDpLFg3DcShXAKmGEAdlfSqmpcNbCXax6PSo
-qMRYYq9tnbvVn0EozV6D/YUfheTatzNzBw2pGPt/YfoGVY0++OWBPkkqZl1NSaNc
-i6XniG0miS1mStbuyaFWpkaX1BpkrL89Js/iqGirEudxk5PhNiN2bmfer/k+BSn7
-NS+DD/ey1HbtXOPyqr+ct6f0UWVzyDn7Q4knVPM5TzOtHufIvJrK9lfHDsHHWTV4
-0EvXlgrLr08eha7jXmfF+1pzfhcYOzsIQFrzn3hd8SS2Io/nks2BvmshU72sKPu4
-vEj0eYPkelAcullv6gY1+PaPbdI1oPlJDFCRiJhEqUxhRENzKKYDS0gF7chJvxuC
-ev2vZi4fLfUUVzhGJWbWFgs4J+67q2iwqizRStFS62BiNQkJVhucqAXE6uf8H4Jk
-o8PK5UyJIH0wrWAw3EEEVwHKPHSbH7I7C2KXURkLp/3ohqwc7PEI7bysGW5pzyyC
-8ak1MmsBY2Z7cDflqHqJxC75P0d/QxgNklZ+mV5nCc1vE65q/tuIwBh4gDYq/Uve
-H0G06B3ZprAW9jlZd4GRl+GDDIJxYpqqK8IL6v5Q7URH3EvIBRSIdgwJs5WyXql/
-cIvpbaVDT690YYWdNlsyR/AsFPLCuJiIj3tiga09AQGBwJc9fIZAR94=
-=GoHL
+iQI2BCABCAAgFiEEq7dbKGjbtkU4wBttHWRnY6W4WW0FAlwzc/wCHQAACgkQHWRn
+Y6W4WW2bIhAAzlFaET8rYmmbc+ZzS2/RbO2zIdAHz84VIyQOuLvmm7uQHWnRsNBA
+e7BZo69fSintQ9BHddZ6YK6/LNL9pdDNs0jf9YiWX5Dvbt+gANvTG6HlZ6yfXaKp
+GbAGRuhyqh2XThG/Unj78T52/XoZnc1+vGI60DPgFTlKnkWsD/NfPpW7HW/+XNQm
+sv5tyEyX3cGlaP90ZaVeb+9SV0xYGEcTkya553k1fhWCfJJQ/K9IlMadaXPWJqx+
+QkUACo21YgoYvMVT6XGWmyz1QHQyHkS6qHXkbPUxb4ZWM4u47MPoOVBKTSwoWQhq
++5UYuKTgXHonRcmJXv5y1wxckBw3/PMCae3LCE4/7ucAztoRxOsxJD1AMuLdqgBG
+D5x9AumtE3fx8a6u+GnCi0rL/kx6m+J4+6yZw7XFEZoehj6EK1aA55HA0yEU0o+i
+ooR7zVWQxt0xojJnQGngASe/KkayRTkcODDYG24q6+eV3E+eehkcnZO0DIPAzpPp
+G75YhAagPbnqIJxwY8LcAqlU2JGebewSd2kBkKZd/0Gi9UH74DNSKPPryDB7/cE1
+GG61uMEFHB16RYfJbVRRm4ZF2amlz24zzKDE53OcDLYfilj7m5GeIeLorrEPkioO
+a4b+JWJ/e7WvU8BRT/4QG5SSy92DtA0kX3sqxsSUWMg8kXdMPKFVcXI=
+=VcH2
 -----END PGP PUBLIC KEY BLOCK-----
