@@ -123,7 +123,7 @@ serverSpec = before_ resetDb $ do
     it "creates Post" $ do
       runCreatePostHandler testTitle testBody `shouldReturn` Right NoContent
       runGetPostHandler testSlug
-        `shouldReturn` postSuccess "Post" (Post (Just 1) testSlug testTitle testTime testBody)
+        `shouldReturn` postSuccess testTitle (Post (Just 1) testSlug testTitle testTime testBody)
 
   let runEditPostHandler id title body = runMockApp (editPostHandler id $ Signed "" (PostPayload title body))
       newTestTitle = "new title"
@@ -142,7 +142,7 @@ serverSpec = before_ resetDb $ do
       runCreatePostHandler testTitle testBody `shouldReturn` Right NoContent
       runEditPostHandler 1 newTestTitle newTestBody `shouldReturn` Right NoContent
       runGetPostHandler newTestSlug
-        `shouldReturn` postSuccess "Post" (Post (Just 1) newTestSlug newTestTitle testTime newTestBody)
+        `shouldReturn` postSuccess newTestTitle (Post (Just 1) newTestSlug newTestTitle testTime newTestBody)
 
   let runDeletePostHandler id = runMockApp (deletePostHandler id $ Signed "" Null)
   describe "Delete Post Handler" $ do
