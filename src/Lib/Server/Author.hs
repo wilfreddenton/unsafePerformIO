@@ -13,10 +13,11 @@ import           Lib.Effects.Author  (About (..), Contact (..), Email (..),
                                       MyLocation (..), editAbout, getAbout,
                                       getContact)
 import           Lib.Effects.Logger  (MonadLogger, info, withNamespace)
-import           Lib.Env             (CanAuthEnv, PgpKey (PgpKey), aPgpKey)
+import           Lib.Effects.Post    (MonadPost, getPosts)
+import           Lib.Env             (CanAuthEnv, PgpKey, aPgpKey)
 import           Lib.Error           (CanApiError, logAndThrow,
                                       _FieldTooLongError, _NotFoundError)
-import           Lucid.Extended      (AuthorTemplate (..), Template (..))
+import           Lib.Server.Template (AuthorTemplate (..), Template (..))
 import           Protolude
 import           Servant             (NoContent (NoContent))
 
@@ -86,8 +87,11 @@ pgpKeyHandler = withNamespace "pgp" $ do
   info $ "request for pgp"
   Template "Pgp" <$> view aPgpKey
 
-authorHandler :: (CanAuthor e m, CanAuthEnv a m) => m AuthorTemplate
+authorHandler :: (CanAuthor e m, CanAuthEnv a m, MonadPost m) => m AuthorTemplate
 authorHandler = withNamespace "author" $ do
   info $ "request for author page"
-  PgpKey pgpKey <- view aPgpKey
-  pure $ AuthorTemplate pgpKey
+  pgpKey <- view aPgpKey
+  aboutM <- getAbout
+  contactM <- getContact
+  posts <- getPosts
+  pure $ AuthorTemplate pgpKey posts aboutM contactM

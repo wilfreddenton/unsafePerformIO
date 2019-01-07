@@ -20,7 +20,7 @@ import           Lib.Error           (CanPostError, logAndThrow,
                                       _PostBodyEmptyError, _PostNotFoundError,
                                       _PostTitleEmptyError,
                                       _PostTitleTooLongError)
-import           Lucid.Extended      (Template (Template))
+import           Lib.Server.Template (Template (Template))
 import           Protolude
 import           Servant             (NoContent (NoContent))
 

@@ -8,8 +8,15 @@ function main() {
     submit: document.getElementById('submit'),
     privateKey: document.getElementById('private-key'),
     passphrase: document.getElementById('passphrase'),
-    postForm: document.getElementById('post-form')
+    postForm: document.getElementById('post-form'),
+    toggles : document.querySelectorAll('.toggle')
   };
+
+  refs.toggles.forEach((toggle) => {
+    toggle.addEventListener('click', (e) => {
+      e.target.parentElement.querySelector('form').classList.toggle('hidden');
+    });
+  });
 
   refs.submit.addEventListener('click', (e) => {
     e.preventDefault();

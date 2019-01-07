@@ -11,12 +11,12 @@ import           Data.Aeson.Extended   (object, (.=))
 import qualified Data.ByteString.Char8 as BS
 import           Data.Proxy            (Proxy (Proxy))
 import qualified Data.Text.Encoding    as T
-import           Lib.App               (App, appToHandler, runLoggerT)
+import           Lib.App               (App, appToHandler, runLoggerT,
+                                        toHttpError)
 import           Lib.Effects.Logger    (infoKatip, withContextKatip,
                                         withNamespaceKatip)
 import           Lib.Env               (AppEnv, HasLoggerEnv)
-import           Lib.Error             (errorMessage, toHttpError,
-                                        _NotFoundError)
+import           Lib.Error             (errorMessage, _NotFoundError)
 import           Lib.Server.Api        (API)
 import           Lib.Server.Author     (authorHandler, editAboutHandler,
                                         editContactHandler, getAboutHandler,

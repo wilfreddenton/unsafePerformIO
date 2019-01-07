@@ -5,22 +5,16 @@
 module Lib.Error where
 
 import           Control.Lens        (makeClassyPrisms)
-import           Data.Aeson.Extended (ToJSON, Value, encode, object, toJSON,
-                                      (.=))
-import qualified Data.ByteString     as B
-import qualified Data.Map.Strict     as Map
+import           Data.Aeson.Extended (ToJSON, Value, object, toJSON, (.=))
 import qualified Data.Text           as T
 import qualified Data.Text.Encoding  as T
 import           Lib.Effects.Logger  (MonadLogger, error, withContext,
                                       withNamespace)
-import           Lucid.Extended      (HtmlT, Template (Template), ToHtml, h3_,
-                                      p_, renderBS, span_, toHtml, toHtmlRaw)
-import           Network.HTTP.Types  (Status (Status), hAccept, hContentType,
-                                      status400, status401, status404,
+import           Lucid.Extended      (HtmlT, ToHtml, h3_, p_, span_, toHtml,
+                                      toHtmlRaw)
+import           Network.HTTP.Types  (Status, status400, status401, status404,
                                       status500, statusCode, statusMessage)
-import           Network.Wai         (Request, requestHeaders)
 import           Protolude
-import           Servant             (ServantErr (ServantErr))
 
 class HttpStatus a where
   httpStatus :: a -> Status
@@ -154,18 +148,6 @@ instance ToHtml AppError where
   toHtml (AppPostError err) = toHtml err
   toHtml (AppDbError err)   = toHtml err
   toHtml (AppApiError err)  = toHtml err
-
-toHttpError :: Request -> AppError -> ServantErr
-toHttpError req appErr =
-  let headersMap = Map.fromList $ requestHeaders req
-      acceptHeaderM = Map.lookup hAccept headersMap
-      Status { statusCode, statusMessage} = httpStatus appErr
-      jsonTuple = (encode . toJSON, (hContentType, "application/json"))
-      htmlTuple = (renderBS . toHtml . Template "error", (hContentType, "text/html"))
-      (toBS, contentTypeHeader) = case acceptHeaderM of
-        Nothing -> jsonTuple
-        Just accept  -> if B.isInfixOf "text/html" accept then htmlTuple else jsonTuple
-  in ServantErr (statusCode) (show $ statusMessage) (toBS appErr) [contentTypeHeader]
 
 logAndThrow :: (MonadLogger m, MonadError e m, ToJSON e) => e -> m a
 logAndThrow err = withNamespace "error" . withContext err $ do

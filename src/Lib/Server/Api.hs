@@ -10,7 +10,7 @@ import           Lib.Effects.Author  (About, Contact)
 import qualified Lib.Effects.Post    as P
 import           Lib.Env             (PgpKey)
 import           Lib.Server.Posts    (PostPayload)
-import           Lucid.Extended      (AuthorTemplate, Template)
+import           Lib.Server.Template (AuthorTemplate, Template)
 import           Protolude
 import           Servant             ((:<|>), (:>), Capture, Delete, Get, JSON,
                                       NoContent, Post, Put, Raw, ReqBody)

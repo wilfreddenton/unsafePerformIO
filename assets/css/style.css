@@ -128,6 +128,10 @@ footer {
   padding: 3rem 0;
 }
 
+form {
+  margin-bottom: 1rem;
+}
+
 input, textarea {
   font-size: 14px;
   padding: 0.5rem;
@@ -207,6 +211,17 @@ li:hover span.inset {
   font-family: 'AT', monospace;
   font-size: 0.8rem;
 }
+
+.toggle {
+  cursor: pointer;
+  user-select: none;
+  display: block;
+}
+
+.hidden {
+  display: none;
+}
+
 
 @media (max-width: 1200px) {}
 
