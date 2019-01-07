@@ -44,16 +44,16 @@ validatePostPayload PostPayload {..} = do
 getPostsHandler :: (MonadLogger m, MonadPost m) => m (Template [Post])
 getPostsHandler = withNamespace "getPosts" $ do
   info "request for posts"
-  Template "Posts" <$> getPosts
+  Template "unsafePerformIO" <$> getPosts
 
 getPostHandler :: (MonadLogger m, MonadPost m, CanPostError e m) => Text -> m (Template Post)
 getPostHandler slug = withNamespace "getPost" . withContext (object ["slug" .= slug]) $ do
   info "request for post"
   postM <- getPostBySlug slug
-  post <- case postM of
+  post@Post{..} <- case postM of
     Nothing -> logAndThrow $ _PostNotFoundError # slug
     Just p  -> pure $ p
-  pure $ Template "Post" post
+  pure $ Template pTitle post
 
 createPostHandler :: (MonadLogger m, MonadTime m, MonadPost m, MonadAuth m, CanPostError e m) => Signed PostPayload -> m NoContent
 createPostHandler (Signed sig pp@PostPayload {..}) = withNamespace "createPost" . withContext (object ["title" .= ppTitle]) $ do

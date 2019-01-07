@@ -85,7 +85,7 @@ editContactHandler (Signed sig contact@Contact{..}) = withNamespace "editContact
 pgpKeyHandler :: (MonadLogger m, CanAuthEnv a m) => m (Template PgpKey)
 pgpKeyHandler = withNamespace "pgp" $ do
   info $ "request for pgp"
-  Template "Pgp" <$> view aPgpKey
+  Template "PGP" <$> view aPgpKey
 
 authorHandler :: (CanAuthor e m, CanAuthEnv a m, MonadPost m) => m AuthorTemplate
 authorHandler = withNamespace "author" $ do
