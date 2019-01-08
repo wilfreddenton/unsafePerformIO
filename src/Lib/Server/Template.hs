@@ -86,11 +86,13 @@ instance ToHtml AuthorTemplate where
         row_ . col_ $ do
           let editPostForm :: Monad m => Post -> HtmlT m ()
               editPostForm Post{..} = row_ . col_ $ do
-                h3_ [class_ "toggle"] $ toHtml pTitle
-                form_ [id_ "edit-form", class_ "hidden"] $ do
-                  input_ [type_ "hidden", name_ "id", value_ . show $ fromMaybe 0 pId]
+                h3_ [class_ "toggle"] . toHtml $ "_" <> pTitle
+                let id = show $ fromMaybe 0 pId
+                form_ [id_ ("editpost-" <> id <> "-form"), class_ "hidden"] $ do
+                  button_ [href_ ""] "delete"
+                  input_ [type_ "hidden", name_ "postId", value_ id]
                   input_ [type_ "text", name_ "title", placeholder_ "Title", value_ pTitle]
-                  textarea_ [type_ "text", name_ "body", placeholder_ "Body", value_ pBody] ""
+                  textarea_ [type_ "text", name_ "body", placeholder_ "Body"] $ toHtml pBody
                   button_ [href_ ""] "submit"
           h3_ [class_ "toggle"] "Edit Posts"
           div_ [class_ "hidden"] $ foldMap editPostForm posts
@@ -100,7 +102,7 @@ instance ToHtml AuthorTemplate where
             let title = fromMaybe "" (aTitle <$> aboutM)
                 body = fromMaybe "" (aBody <$> aboutM)
             input_ [type_ "text", name_ "title", placeholder_ "Title", value_ title]
-            textarea_ [type_ "text", name_ "body", placeholder_ "Body", value_ body] ""
+            textarea_ [type_ "text", name_ "body", placeholder_ "Body"] $ toHtml body
             button_ [href_ ""] "submit"
         row_ . col_ $ do
           h3_ [class_ "toggle"] "Edit Contact"
@@ -112,7 +114,7 @@ instance ToHtml AuthorTemplate where
                 Instagram instagram = fromMaybe (Instagram "") (cInstagram <$> contactM)
             input_ [type_ "text", name_ "location", placeholder_ "Location", value_ location]
             input_ [type_ "text", name_ "email", placeholder_ "Email", value_ email]
-            input_ [type_ "text", name_ "linked_in", placeholder_ "LinkedIn", value_ linkedIn]
-            input_ [type_ "text", name_ "facebook_messenger", placeholder_ "Facebook Messenger", value_ facebookMessenger]
+            input_ [type_ "text", name_ "linkedIn", placeholder_ "LinkedIn", value_ linkedIn]
+            input_ [type_ "text", name_ "facebookMessenger", placeholder_ "Facebook Messenger", value_ facebookMessenger]
             input_ [type_ "text", name_ "instagram", placeholder_ "Instagram", value_ instagram]
             button_ [href_ ""] "submit"

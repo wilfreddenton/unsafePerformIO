@@ -25,15 +25,17 @@ import           Lib.Server.Posts      (createPostHandler, deletePostHandler,
                                         editPostHandler, getPostHandler,
                                         getPostsHandler)
 import           Network.HTTP.Types    (mkStatus)
-import           Network.Wai           (Application, rawPathInfo, responseLBS)
+import           Network.Wai           (Application, rawPathInfo, requestMethod,
+                                        responseLBS)
 import           Protolude             hiding (log)
 import           Servant
 
 notFoundHandler :: (HasLoggerEnv a) => a -> ServerT Raw m
 notFoundHandler env = Tagged $ \req res -> do
   let route' = T.decodeUtf8 $ rawPathInfo req
+      method = T.decodeUtf8 $ requestMethod req
       appErr = _NotFoundError # route'
-  liftIO . runLoggerT env . withNamespaceKatip "notFound" . withContextKatip (object ["route" .= route']) $
+  liftIO . runLoggerT env . withNamespaceKatip "notFound" . withContextKatip (object ["method" .= method, "route" .= route']) $
     infoKatip $ errorMessage appErr
   res . responseServantErr . toHttpError req $ appErr
   where

@@ -91,7 +91,7 @@ authSpec = do
             authorize sig clearText
       runMockApp action `shouldReturn` failure
 
-    modifyMaxSuccess (const n) . it "does authorize valid signatures created by the same key" . property $ \clearText -> do
+    modifyMaxSuccess (const n) . it "does authorize signatures created by the same key" . property $ \clearText -> do
       let action = do
             ctx <- view aCtx
             sig <- makeSignature ctx clearText
