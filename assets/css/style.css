@@ -195,7 +195,13 @@ body > .container:first-child {
 #view-source {
   float: right;
   font-family: 'AT', monospace;
-  margin-top: -0.25rem;
+  margin-top: -0.4rem;
+}
+
+#monero {
+  font-family: 'AT', monospace;
+  font-size: 0.625rem;
+  overflow-wrap: break-word;
 }
 
 span.inset {

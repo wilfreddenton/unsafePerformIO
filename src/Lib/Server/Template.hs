@@ -47,9 +47,10 @@ instance ToHtml a => ToHtml (Template a) where
             li_ $ button_ [href_ "/pgp"] "PGP Key"
         colMd8_ . div_ [class_ "content"] $ toHtml a
       container_ [id_ "footer-container"] . footer_ $ do
-        div_ $ span_ "BTC: xxxxxxxxxxxxxxxxxx"
-        div_ $ span_ "ETH: xxxxxxxxxxxxxxxxxx"
-        div_ $ span_ "XMR: xxxxxxxxxxxxxxxxxx"
+        p_ [id_ "monero"] $ do
+          a_ [href_ "https://www.getmonero.org/", target_ "_blank"] "XMR"
+          span_ ": "
+          code_ "44e8Sw7PBudHZ5BQuSEEwKA6B5U92fzSPWyVhExNgsvu4i4iZeYzRCrZc5NbJxeNdY8sMVZ2fmvxx97Dg6s74hWH8QkMgR4"
         div_ [style_ "margin-top: 1rem"] $ do
           a_ [rel_ "license", href_ "http://creativecommons.org/licenses/by-sa/3.0/us/"] $
             img_ [ alt_ "Creative Commons License"
