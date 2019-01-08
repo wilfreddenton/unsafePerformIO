@@ -1,4 +1,4 @@
-module Spec where
+module Main where
 
 import           Protolude
 import           Spec.Auth        (authSpec)
@@ -10,5 +10,4 @@ main :: IO ()
 main = do
   authTree <- testSpec "Authentication Spec" authSpec
   serverTree <- testSpec "Server Spec" serverSpec
-  defaultMain $ testGroup "Specs"
-    [serverTree, authTree]
+  defaultMain $ testGroup "Specs" [serverTree, authTree]

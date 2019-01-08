@@ -64,7 +64,7 @@ instance ToHtml AuthorTemplate where
   toHtmlRaw = toHtml
   toHtml (AuthorTemplate (PgpKey pgpKey) posts aboutM contactM) = doctypehtml_ $ do
     head_ $ do
-      title_ "unsafePerformIO | author"
+      title_ "Authoring"
       meta_ [charset_ "utf-8"]
       meta_ [name_ "viewport", content_ "width=device-width, initial-scale=1.0"]
       link_ [rel_ "icon", type_ "image/png", href_ "/static/img/favicon.png"]

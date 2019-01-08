@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: aca99e7e09c35536a54bd954ce1fa784acbae5ee646ccd58a896de8d0d4ce966
+-- hash: 6dfa25c8b178a7c678f269d6906036341c2b7a82c1e8fac5f353f925ccd4e9b8
 
 name:           unsafePerformIO
 version:        0.1.0.0
@@ -144,7 +144,7 @@ test-suite unsafe-perform-io-test
   hs-source-dirs:
       test
   default-extensions: NoImplicitPrelude OverloadedStrings
-  ghc-options: -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Wall -Werror
   build-depends:
       QuickCheck
     , aeson
