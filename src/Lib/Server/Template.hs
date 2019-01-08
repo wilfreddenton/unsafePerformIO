@@ -23,6 +23,8 @@ instance ToHtml a => ToHtml (Template a) where
     head_ $ do
       title_ $ toHtml title
       meta_ [charset_ "utf-8"]
+      meta_ [name_ "description", content_ "Blog and personal website."]
+      meta_ [name_ "author", content_ "Wilfred Denton"]
       meta_ [name_ "viewport", content_ "width=device-width, initial-scale=1.0"]
       link_ [rel_ "icon", type_ "image/png", href_ "/static/img/favicon.png"]
       link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/css/style.css"]
