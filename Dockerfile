@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:18.04 as builder
 
 RUN apt update
 RUN apt install -y curl libgpgme-dev
@@ -17,8 +17,15 @@ WORKDIR unsafePerformIO
 RUN stack test
 RUN stack install
 
+FROM ubuntu:18.04
+RUN apt update
+RUN apt install -y libgpgme-dev
+
+COPY --from=0 /unsafePerformIO .
+COPY --from=0 /root/.local/bin/unsafe-perform-io /unsafePerformIO/
+
 EXPOSE 8080
-ENTRYPOINT /root/.local/bin/unsafe-perform-io --port 8080 \
+ENTRYPOINT /unsafePerformIO/unsafe-perform-io --port 8080 \
                                               --sqlite prod.db \
                                               --init-sql init.sql \
                                               --gnupg-homedir .gnupg \
