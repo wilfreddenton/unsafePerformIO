@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6dfa25c8b178a7c678f269d6906036341c2b7a82c1e8fac5f353f925ccd4e9b8
+-- hash: 8c79f9d4a9f0a2741e8951356552bf8621d7ad837eed6f03d464efc681a3345f
 
 name:           unsafePerformIO
-version:        0.1.0.0
+version:        1.0.0
 description:    Please see the README on GitHub at <https://github.com/wilfreddenton/unsafePerformIO#readme>
 homepage:       https://github.com/wilfreddenton/unsafePerformIO#readme
 bug-reports:    https://github.com/wilfreddenton/unsafePerformIO/issues

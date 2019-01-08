@@ -204,6 +204,11 @@ body > .container:first-child {
   overflow-wrap: break-word;
 }
 
+#monero a {
+  font-family: 'AG', sans-serif;
+  font-weight: bold;
+}
+
 span.inset {
   display: none;
 }
