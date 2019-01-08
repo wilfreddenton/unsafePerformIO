@@ -150,7 +150,7 @@ textarea {
 
 a.hidden-link {
   padding: 0;
-  cursor: default;
+  cursor: text;
   text-decoration: none;
 }
 

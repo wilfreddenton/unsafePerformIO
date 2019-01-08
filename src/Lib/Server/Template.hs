@@ -59,7 +59,7 @@ instance ToHtml a => ToHtml (Template a) where
                  , style_ "border-width:0"
                  , src_ "https://i.creativecommons.org/l/by-sa/3.0/us/80x15.png"
                  ]
-          button_ [id_ "view-source", href_ "", (target_) "_blank"] "</>"
+          button_ [id_ "view-source", href_ "https://github.com/wilfreddenton/unsafePerformIO", target_ "_blank"] "</>"
 
 data AuthorTemplate = AuthorTemplate PgpKey [Post] (Maybe About) (Maybe Contact)
 
