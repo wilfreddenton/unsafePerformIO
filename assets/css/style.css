@@ -223,6 +223,11 @@ li:hover span.inset {
   font-size: 0.8rem;
 }
 
+.post-date {
+  font-family: 'AT', monospace;
+  font-size: 0.9rem;
+}
+
 .toggle {
   cursor: pointer;
   user-select: none;

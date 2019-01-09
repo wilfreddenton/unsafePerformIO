@@ -107,34 +107,34 @@ function run(openpgp, publicKey) {
 
   var formHandlers = {
     'post': (form) => {
-      var title = form.title.value;
-      var body = form.body.value;
+      var title = form.title.value.trim();
+      var body = form.body.value.trim();
       signAndSend('/posts', title + body, {'title': title, 'body': body});
     },
     'editpost': (form) => {
-      var id = form.postId.value;
-      var title = form.title.value;
-      var body = form.body.value;
+      var id = form.postId.value.trim();
+      var title = form.title.value.trim();
+      var body = form.body.value.trim();
       signAndSend(`/posts/${id}`, title + body, {'title': title, 'body': body}, 'PUT');
     },
     'deletepost': (form) => {
-      var id = form.postId.value;
+      var id = form.postId.value.trim();
       var b = confirm('Confirm post deletion.');
       if (b) {
         signAndSend(`/posts/${id}`, id, null, 'DELETE');
       }
     },
     'about': (form) => {
-      var title = form.title.value;
-      var body = form.body.value;
+      var title = form.title.value.trim();
+      var body = form.body.value.trim();
       signAndSend('/about', title + body, {'title': title, 'body': body});
     },
     'contact': (form) => {
-      var location = form.location.value;
-      var email = form.email.value;
-      var linkedIn = form.linkedIn.value;
-      var facebookMessenger = form.facebookMessenger.value;
-      var instagram = form.instagram.value;
+      var location = form.location.value.trim();
+      var email = form.email.value.trim();
+      var linkedIn = form.linkedIn.value.trim();
+      var facebookMessenger = form.facebookMessenger.value.trim();
+      var instagram = form.instagram.value.trim();
       signAndSend('/contact', location + email + linkedIn + facebookMessenger + instagram, {
         'location': location,
         'email': email,

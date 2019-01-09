@@ -25,8 +25,8 @@ import           Lib.Env                (dConn)
 import           Lib.Orphans            ()
 import           Lucid.Extended         (HtmlT, ToHtml, class_, colSm4_,
                                          colSm8_, div_, h1_, h3_, href_, li_,
-                                         renderMarkdown, row_, span_, termWith,
-                                         toHtml, toHtmlRaw, ul_)
+                                         p_, renderMarkdown, row_, span_,
+                                         termWith, toHtml, toHtmlRaw, ul_)
 import           Protolude
 
 -- Type
@@ -47,10 +47,14 @@ instance ToRow Post where
 instance ToJSON Post where
   toJSON = genericToJSON snakeNoPrefix
 
+formatPostTime :: UTCTime -> Text
+formatPostTime = T.pack . formatTime defaultTimeLocale "%b %d, %_Y"
+
 instance ToHtml Post where
   toHtmlRaw = toHtml
   toHtml Post {..} = div_ [class_ "post"] $ do
     h1_ $ toHtml pTitle
+    p_ [class_ "post-date" ] . toHtml $ formatPostTime pCreatedAt
     toHtml $ renderMarkdown pTitle pBody
 
 instance ToHtml [Post] where
@@ -66,7 +70,7 @@ instance ToHtml [Post] where
                 span_ [class_ "inset"] "_"
                 toHtml $ pTitle
             colSm4_ [class_ "post-list-date"] $ do
-              span_ . toHtml . formatTime defaultTimeLocale "%b %d, %_Y" $ pCreatedAt
+              span_ . toHtml $ formatPostTime pCreatedAt
 
 makeSlug :: Text -> UTCTime -> Text
 makeSlug title createdAt = T.pack createdAtStr <> "-" <> modifiedTitle
