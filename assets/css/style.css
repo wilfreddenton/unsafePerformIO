@@ -88,12 +88,32 @@ h2, h3, h4, h5, h6 {
   display: inline;
 }
 
+pre {
+  counter-reset: line;
+  overflow-x: scroll;
+}
+
+pre code {
+  counter-increment: line;
+  display: block;
+}
+pre code:before {
+  margin-right: 0.5rem;
+  min-width: 18px;
+  display: inline-block;
+  text-align: left;
+  content: counter(line);
+}
 code, pre {
   font-family: 'AT', monospace;
 }
 
 code {
   line-height: 1.4;
+}
+
+p code {
+  white-space: nowrap;
 }
 
 a {
@@ -181,7 +201,7 @@ body > .container:first-child {
 }
 
 .content p {
-  line-height: 1.4;
+  line-height: 1.6;
 }
 
 #footer-container {

@@ -28,12 +28,10 @@ instance ToHtml a => ToHtml (Template a) where
       meta_ [name_ "viewport", content_ "width=device-width, initial-scale=1.0"]
       link_ [rel_ "icon", type_ "image/png", href_ "/static/img/favicon.png"]
       link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/css/style.css"]
-      link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/css/github.css"]
       link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/css/bootstrap-grid.min.css"]
+      script_ [src_ "/static/js/script.js", async_ "true"] ("" :: Text)
       script_ [src_ "https://www.googletagmanager.com/gtag/js?id=UA-131857401-1", async_ "true"] ("" :: Text)
       script_ "window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'UA-131857401-1');"
-      script_ [src_ "/static/js/highlight.pack.js"] ("" :: Text)
-      script_ "hljs.initHighlightingOnLoad()"
     body_ $ do
       container_ . row_ $ do
         colMd4_ . nav_ $ do
