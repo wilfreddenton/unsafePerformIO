@@ -81,7 +81,7 @@ instance ToHtml AuthorTemplate where
         row_ . col_ $ do
           h3_ "PGP Private Key"
           textarea_ [id_ "private-key", type_ "text", name_ "private-key", placeholder_ "PGP Private Key"] ""
-          input_ [id_ "passphrase", type_ "text", name_ "passphrase", placeholder_ "Passphrase"]
+          input_ [id_ "passphrase", type_ "password", name_ "passphrase", placeholder_ "Passphrase"]
         row_ . col_ $ do
           h3_ [class_ "toggle"] "Create Post"
           form_ [id_ "post-form", class_ "hidden"] $ do
