@@ -85,7 +85,7 @@ toHttpError req appErr =
       htmlTuple = (renderBS . toHtml . Template "error", (hContentType, "text/html"))
       (toBS, contentTypeHeader) = case acceptHeaderM of
         Nothing -> jsonTuple
-        Just accept  -> if B.isInfixOf "text/html" accept then htmlTuple else jsonTuple
+        Just accept  -> if B.isInfixOf "application/json" accept then jsonTuple else htmlTuple
   in ServantErr (statusCode) (show $ statusMessage) (toBS appErr) [contentTypeHeader]
 
 appToHandler :: AppEnv -> Request -> App a -> Handler a
