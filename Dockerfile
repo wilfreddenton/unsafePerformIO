@@ -26,7 +26,7 @@ COPY --from=0 /root/.local/bin/unsafe-perform-io /unsafePerformIO/
 
 EXPOSE 8080
 ENTRYPOINT /unsafePerformIO/unsafe-perform-io --port 8080 \
-                                              --sqlite db/prod.db # expects a bind mount at /db \
+                                              --sqlite db/prod.db \
                                               --init-sql init.sql \
                                               --gnupg-homedir .gnupg \
                                               --pgp-public-key wilfred.gpg
