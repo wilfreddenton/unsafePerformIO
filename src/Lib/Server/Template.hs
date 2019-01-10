@@ -21,11 +21,24 @@ instance ToHtml a => ToHtml (Template a) where
   toHtmlRaw = toHtml
   toHtml (Template title a) = doctypehtml_ $ do
     head_ $ do
+      let description = "unsafePerformIO is the blog and personal website of Wilfred Denton."
       title_ $ toHtml title
       meta_ [charset_ "utf-8"]
-      meta_ [name_ "description", content_ "Blog and personal website."]
+      meta_ [name_ "description", content_ description]
       meta_ [name_ "author", content_ "Wilfred Denton"]
+      meta_ [ name_ "keywords"
+            , content_ "code, computer, engineer, engineering, functional, haskell, programming, science, software, technology"
+            ]
       meta_ [name_ "viewport", content_ "width=device-width, initial-scale=1.0"]
+      meta_ [property_ "og:title", content_ title]
+      meta_ [property_ "og:type", content_ "website"]
+      meta_ [property_ "og:description", content_ description]
+      meta_ [property_ "og:image", content_ "https://unsafe-perform.io/static/img/favicon.png"]
+      meta_ [property_ "og:url", content_ "https://unsafe-perform.io"]
+      meta_ [name_ "twitter:title", content_ title]
+      meta_ [name_ "twitter:description", content_ description]
+      meta_ [name_ "twitter:image", content_ "https://unsafe-perform.io/static/img/favicon.png"]
+      meta_ [name_ "twitter:card", content_ "summary"]
       link_ [rel_ "icon", type_ "image/png", href_ "/static/img/favicon.png"]
       link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/css/style.css"]
       link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/css/bootstrap-grid.min.css"]
