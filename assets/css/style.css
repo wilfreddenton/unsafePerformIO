@@ -221,7 +221,11 @@ body > .container:first-child {
 #monero {
   font-family: 'AT', monospace;
   font-size: 0.7rem;
+}
+
+#monero code {
   overflow-wrap: break-word;
+  white-space: normal;
 }
 
 #monero a {
