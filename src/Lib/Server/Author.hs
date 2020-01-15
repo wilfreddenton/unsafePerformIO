@@ -4,7 +4,7 @@
 module Lib.Server.Author where
 
 import Control.Lens ((#), view)
-import Data.Aeson.Extended (Value (String), toJSON)
+import Data.Coerce (coerce)
 import qualified Data.Text as T
 import Lib.Effects.Auth (MonadAuth, Signed (Signed), authorize)
 import Lib.Effects.Author
@@ -50,12 +50,8 @@ validateContact Contact {..} = do
   lengthCheck "location" cInstagram
   where
     maxLen = 280
-    fieldToText field =
-      case toJSON field of
-        String text -> text
-        _ -> T.replicate 9001 "n"
     lengthCheck fieldName field =
-      if T.length (fieldToText field) > maxLen then (logAndThrow $ _FieldTooLongError # fieldName) else pure ()
+      if T.length (coerce field) > maxLen then (logAndThrow $ _FieldTooLongError # fieldName) else pure ()
 
 baseHandler :: CanAuthor e m => Text -> m (Maybe a) -> m (Template a)
 baseHandler title action = withNamespace loweredTitle $ do
