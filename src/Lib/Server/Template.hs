@@ -1,16 +1,22 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Lib.Server.Template where
 
-import           Data.Aeson.Extended (ToJSON, toJSON)
-import           Lib.Effects.Author  (About (..), Contact (..), Email (..),
-                                      FacebookMessenger (..), Instagram (..),
-                                      LinkedIn (..), MyLocation (..))
-import           Lib.Effects.Post    (Post (..))
-import           Lib.Env             (PgpKey (PgpKey))
-import           Lucid.Extended
-import           Protolude
+import Data.Aeson.Extended (ToJSON, toJSON)
+import Lib.Effects.Author
+  ( About (..),
+    Contact (..),
+    Email (..),
+    FacebookMessenger (..),
+    Instagram (..),
+    LinkedIn (..),
+    MyLocation (..),
+  )
+import Lib.Effects.Post (Post (..))
+import Lib.Env (PgpKey (PgpKey))
+import Lucid.Extended
+import Protolude
 
 data Template a = Template Text a deriving (Eq, Show)
 
@@ -18,7 +24,9 @@ instance ToJSON a => ToJSON (Template a) where
   toJSON (Template _ a) = toJSON a
 
 instance ToHtml a => ToHtml (Template a) where
+
   toHtmlRaw = toHtml
+
   toHtml (Template title a) = doctypehtml_ $ do
     head_ $ do
       let description = "unsafePerformIO is the blog and personal website of Wilfred Denton."
@@ -26,9 +34,10 @@ instance ToHtml a => ToHtml (Template a) where
       meta_ [charset_ "utf-8"]
       meta_ [name_ "description", content_ description]
       meta_ [name_ "author", content_ "Wilfred Denton"]
-      meta_ [ name_ "keywords"
-            , content_ "code, computer, engineer, engineering, functional, haskell, programming, science, software, technology"
-            ]
+      meta_
+        [ name_ "keywords",
+          content_ "code, computer, engineer, engineering, functional, haskell, programming, science, software, technology"
+        ]
       meta_ [name_ "viewport", content_ "width=device-width, initial-scale=1.0"]
       meta_ [property_ "og:title", content_ title]
       meta_ [property_ "og:type", content_ "website"]
@@ -66,16 +75,19 @@ instance ToHtml a => ToHtml (Template a) where
           code_ "44e8Sw7PBudHZ5BQuSEEwKA6B5U92fzSPWyVhExNgsvu4i4iZeYzRCrZc5NbJxeNdY8sMVZ2fmvxx97Dg6s74hWH8QkMgR4"
         div_ [style_ "margin-top: 1rem"] $ do
           a_ [rel_ "license", href_ "http://creativecommons.org/licenses/by-sa/3.0/us/"] $
-            img_ [ alt_ "Creative Commons License"
-                 , style_ "border-width:0"
-                 , src_ "https://i.creativecommons.org/l/by-sa/3.0/us/80x15.png"
-                 ]
+            img_
+              [ alt_ "Creative Commons License",
+                style_ "border-width:0",
+                src_ "https://i.creativecommons.org/l/by-sa/3.0/us/80x15.png"
+              ]
           button_ [id_ "view-source", href_ "https://github.com/wilfreddenton/unsafePerformIO", target_ "_blank"] "</>"
 
 data AuthorTemplate = AuthorTemplate PgpKey [Post] (Maybe About) (Maybe Contact)
 
 instance ToHtml AuthorTemplate where
+
   toHtmlRaw = toHtml
+
   toHtml (AuthorTemplate (PgpKey pgpKey) posts aboutM contactM) = doctypehtml_ $ do
     head_ $ do
       title_ "Authoring"
@@ -101,7 +113,7 @@ instance ToHtml AuthorTemplate where
             button_ [href_ ""] "submit"
         row_ . col_ $ do
           let editPostForm :: Monad m => Post -> HtmlT m ()
-              editPostForm Post{..} = row_ . col_ $ do
+              editPostForm Post {..} = row_ . col_ $ do
                 h3_ [class_ "toggle"] . toHtml $ "_" <> pTitle
                 let id = show $ fromMaybe 0 pId
                 form_ [id_ ("editpost-" <> id <> "-form"), class_ "hidden"] $ do

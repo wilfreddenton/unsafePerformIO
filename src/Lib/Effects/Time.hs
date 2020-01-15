@@ -1,10 +1,10 @@
 module Lib.Effects.Time where
 
-import           Control.Lens       (( # ))
-import           Data.Time          (UTCTime, getCurrentTime)
-import           Lib.Effects.Logger (MonadLogger)
-import           Lib.Error          (CanApiError, wrapIO, _GetTimeError)
-import           Protolude
+import Control.Lens ((#))
+import Data.Time (UTCTime, getCurrentTime)
+import Lib.Effects.Logger (MonadLogger)
+import Lib.Error (CanApiError, _GetTimeError, wrapIO)
+import Protolude
 
 class Monad m => MonadTime m where
   now :: m UTCTime

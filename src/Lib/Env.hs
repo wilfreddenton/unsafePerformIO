@@ -113,38 +113,31 @@ customJsonFormatter _color _verb Item {..} = fromText . toStrict . decodeUtf8 $ 
           "ns" .= _itemNamespace
         ]
 
-validateFilePath :: MonadIO m => FilePath -> (FilePath -> IO Bool) -> (FilePath -> m a) -> m b -> m b
-validateFilePath path validate failure success = do
-  validB <- liftIO $ validate path
-  case validB of
-    False -> do
-      _ <- failure path
-      liftIO exitFailure
-    True -> success
+validateFilePath :: MonadIO m => FilePath -> (FilePath -> IO Bool) -> (FilePath -> IO a) -> m ()
+validateFilePath path validate failure =
+  liftIO $ bool (failure path >> exitFailure) (pure ()) =<< validate path
 
 newAuthEnv :: MonadIO m => FilePath -> FilePath -> m AuthEnv
 newAuthEnv homedir pgpKeyFile = do
-  validateFilePath homedir doesDirectoryExist (failure "GnuPG homedir") $ pure ()
-  validateFilePath pgpKeyFile doesFileExist (failure "PGP public key file") success
+  validateFilePath homedir doesDirectoryExist (failure "GnuPG homedir")
+  validateFilePath pgpKeyFile doesFileExist (failure "PGP public key file")
+  ctx <- liftIO $ newCtx homedir "C" OpenPGP
+  pgpKey <- liftIO $ T.readFile pgpKeyFile
+  pure . AuthEnv ctx $ PgpKey pgpKey
   where
     failure resource path = putStrLn $ "no " <> resource <> " found at filepath: " <> path
-    success = do
-      ctx <- liftIO $ newCtx homedir "C" OpenPGP
-      pgpKey <- liftIO $ T.readFile pgpKeyFile
-      pure . AuthEnv ctx $ PgpKey pgpKey
 
 newDbEnv :: MonadIO m => FilePath -> FilePath -> m DbEnv
 newDbEnv dbPath sqlPath = do
-  validateFilePath sqlPath doesFileExist failure (pure ())
-  statements <- T.splitOn ";" . T.strip <$> liftIO (T.readFile sqlPath)
-  let statements' = filter ((/=) "") statements
+  validateFilePath sqlPath doesFileExist failure
+  statements <- filter (/= "") . T.splitOn ";" . T.strip <$> liftIO (T.readFile sqlPath)
   dbExists <- liftIO $ doesFileExist dbPath
   conn <- liftIO $ open dbPath
-  if not dbExists then liftIO (traverse_ (runStatement conn) statements') else pure ()
+  if not dbExists then liftIO (traverse_ (runStatement conn) statements) else pure ()
   pure $ DbEnv conn
   where
-    runStatement conn statement = execute_ conn $ Query statement
-    failure path = putStrLn $ "no SQL file found at filepath: " <> path
+    runStatement conn = execute_ conn . Query
+    failure = putStrLn . mappend "no SQL file found at filepath: "
 
 newLoggerEnv :: MonadIO m => m LoggerEnv
 newLoggerEnv = do

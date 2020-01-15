@@ -1,58 +1,97 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TemplateHaskell #-}
 
-module Spec.Auth (
-  authSpec
-) where
+module Spec.Auth
+  ( authSpec,
+  )
+where
 
-import           Control.Lens                   (makeClassy, view, ( # ))
-import           Crypto.Gpgme                   (Ctx, Protocol (OpenPGP),
-                                                 SignMode (Detach), newCtx,
-                                                 setArmor,
-                                                 setPassphraseCallback, sign)
-import qualified Data.Text.Encoding             as T
-import           Lib.Effects.Auth               (MonadAuth, authorize,
-                                                 authorizeIO)
-import           Lib.Effects.Logger             (MonadLogger, debug, error,
-                                                 info, logPure, warn,
-                                                 withContext, withContextPure,
-                                                 withNamespace,
-                                                 withNamespacePure)
-import           Lib.Env                        (AuthEnv, HasAuthEnv, aCtx,
-                                                 authEnv, newAuthEnv)
-import           Lib.Error                      (ApiError (UnauthorizedError),
-                                                 AppError (AppApiError),
-                                                 CanApiError, logAndThrow,
-                                                 _AuthorizationFailedError)
-import           Protolude
-import           Servant                        (NoContent (NoContent))
-import           Test.Hspec.Core.QuickCheck     (modifyMaxSuccess)
-import           Test.QuickCheck                (property)
-import           Test.QuickCheck.Instances.Text ()
-import           Test.Tasty.Hspec               (Spec, describe, it, runIO,
-                                                 shouldReturn)
+import Control.Lens ((#), makeClassy, view)
+import Crypto.Gpgme
+  ( Ctx,
+    Protocol (OpenPGP),
+    SignMode (Detach),
+    newCtx,
+    setArmor,
+    setPassphraseCallback,
+    sign,
+  )
+import qualified Data.Text.Encoding as T
+import Lib.Effects.Auth
+  ( MonadAuth,
+    authorize,
+    authorizeIO,
+  )
+import Lib.Effects.Logger
+  ( MonadLogger,
+    debug,
+    error,
+    info,
+    logPure,
+    warn,
+    withContext,
+    withContextPure,
+    withNamespace,
+    withNamespacePure,
+  )
+import Lib.Env
+  ( AuthEnv,
+    HasAuthEnv,
+    aCtx,
+    authEnv,
+    newAuthEnv,
+  )
+import Lib.Error
+  ( ApiError (UnauthorizedError),
+    AppError (AppApiError),
+    CanApiError,
+    _AuthorizationFailedError,
+    logAndThrow,
+  )
+import Protolude
+import Servant (NoContent (NoContent))
+import Test.Hspec.Core.QuickCheck (modifyMaxSuccess)
+import Test.QuickCheck (property)
+import Test.QuickCheck.Instances.Text ()
+import Test.Tasty.Hspec
+  ( Spec,
+    describe,
+    it,
+    runIO,
+    shouldReturn,
+  )
 
-data MockAppEnv = MockAppEnv {
-  _mockAppAuthEnv :: AuthEnv
-}
+data MockAppEnv
+  = MockAppEnv
+      { _mockAppAuthEnv :: AuthEnv
+      }
+
 makeClassy ''MockAppEnv
 
 instance HasAuthEnv MockAppEnv where
   authEnv = mockAppAuthEnv . authEnv
 
-newtype MockApp a = MockApp {
-  unMockApp :: ReaderT MockAppEnv (ExceptT AppError IO) a
-} deriving (Monad, Functor, Applicative, MonadReader MockAppEnv, MonadError AppError, MonadIO)
+newtype MockApp a
+  = MockApp
+      { unMockApp :: ReaderT MockAppEnv (ExceptT AppError IO) a
+      }
+  deriving (Monad, Functor, Applicative, MonadReader MockAppEnv, MonadError AppError, MonadIO)
 
 instance MonadAuth MockApp where
   authorize = authorizeIO
 
 instance MonadLogger MockApp where
+
   debug = logPure
+
   error = logPure
+
   info = logPure
+
   warn = logPure
+
   withNamespace = withNamespacePure
+
   withContext = withContextPure
 
 aliceHomedir :: FilePath
@@ -74,7 +113,7 @@ makeSignature ctx clearText = do
   result <- liftIO $ sign ctx [] Detach clearTextBs
   case result of
     Right sig -> pure $ T.decodeUtf8 sig
-    _         -> logAndThrow $ _AuthorizationFailedError # ""
+    _ -> logAndThrow $ _AuthorizationFailedError # ""
 
 authSpec :: Spec
 authSpec = do
@@ -83,14 +122,12 @@ authSpec = do
   describe "Auth" $ do
     it "does not authorize random signatures and cleartext" . property $ \sig clearText -> do
       runMockApp (authorize sig clearText) `shouldReturn` failure
-
     bobCtx <- runIO $ newCtx bobHomedir "C" OpenPGP
     modifyMaxSuccess (const n) . it "does not authorize signatures created by another key" . property $ \clearText -> do
       let action = do
             sig <- makeSignature bobCtx clearText
             authorize sig clearText
       runMockApp action `shouldReturn` failure
-
     modifyMaxSuccess (const n) . it "does authorize signatures created by the same key" . property $ \clearText -> do
       let action = do
             ctx <- view aCtx

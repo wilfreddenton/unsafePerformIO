@@ -1,33 +1,60 @@
-{-# LANGUAGE DeriveGeneric    #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Lib.Server.Posts where
 
-import           Control.Lens        (( # ))
-import           Data.Aeson.Extended (FromJSON, ToJSON, Value, genericParseJSON,
-                                      genericToJSON, object, parseJSON,
-                                      snakeNoPrefix, toJSON, (.=))
-import qualified Data.Text           as T
-import           Lib.Effects.Auth    (MonadAuth, Signed (Signed), authorize)
-import           Lib.Effects.Logger  (MonadLogger, info, withContext,
-                                      withNamespace)
-import           Lib.Effects.Post    (MonadPost, Post (..), createPost,
-                                      deletePost, editPost, getPostById,
-                                      getPostBySlug, getPosts, makeSlug)
-import           Lib.Effects.Time    (MonadTime, now)
-import           Lib.Error           (CanPostError, logAndThrow,
-                                      _PostBodyEmptyError, _PostNotFoundError,
-                                      _PostTitleEmptyError,
-                                      _PostTitleTooLongError)
-import           Lib.Server.Template (Template (Template))
-import           Protolude
-import           Servant             (NoContent (NoContent))
+import Control.Lens ((#))
+import Data.Aeson.Extended
+  ( (.=),
+    FromJSON,
+    ToJSON,
+    Value,
+    genericParseJSON,
+    genericToJSON,
+    object,
+    parseJSON,
+    snakeNoPrefix,
+    toJSON,
+  )
+import qualified Data.Text as T
+import Lib.Effects.Auth (MonadAuth, Signed (Signed), authorize)
+import Lib.Effects.Logger
+  ( MonadLogger,
+    info,
+    withContext,
+    withNamespace,
+  )
+import Lib.Effects.Post
+  ( MonadPost,
+    Post (..),
+    createPost,
+    deletePost,
+    editPost,
+    getPostById,
+    getPostBySlug,
+    getPosts,
+    makeSlug,
+  )
+import Lib.Effects.Time (MonadTime, now)
+import Lib.Error
+  ( CanPostError,
+    _PostBodyEmptyError,
+    _PostNotFoundError,
+    _PostTitleEmptyError,
+    _PostTitleTooLongError,
+    logAndThrow,
+  )
+import Lib.Server.Template (Template (Template))
+import Protolude
+import Servant (NoContent (NoContent))
 
-data PostPayload = PostPayload {
-  ppTitle :: Text
-, ppBody  :: Text
-} deriving Generic
+data PostPayload
+  = PostPayload
+      { ppTitle :: Text,
+        ppBody :: Text
+      }
+  deriving (Generic)
 
 instance ToJSON PostPayload where
   toJSON = genericToJSON snakeNoPrefix
@@ -50,9 +77,9 @@ getPostHandler :: (MonadLogger m, MonadPost m, CanPostError e m) => Text -> m (T
 getPostHandler slug = withNamespace "getPost" . withContext (object ["slug" .= slug]) $ do
   info "request for post"
   postM <- getPostBySlug slug
-  post@Post{..} <- case postM of
+  post@Post {..} <- case postM of
     Nothing -> logAndThrow $ _PostNotFoundError # slug
-    Just p  -> pure $ p
+    Just p -> pure $ p
   pure $ Template pTitle post
 
 createPostHandler :: (MonadLogger m, MonadTime m, MonadPost m, MonadAuth m, CanPostError e m) => Signed PostPayload -> m NoContent
@@ -73,8 +100,8 @@ editPostHandler postId (Signed sig pp@PostPayload {..}) = withNamespace "editPos
   postM <- getPostById postId
   post@Post {..} <- case postM of
     Nothing -> logAndThrow $ _PostNotFoundError # (show postId :: Text)
-    Just p  -> pure p
-  editPost postId $ post { pTitle = ppTitle, pSlug = makeSlug ppTitle pCreatedAt, pBody = ppBody }
+    Just p -> pure p
+  editPost postId $ post {pTitle = ppTitle, pSlug = makeSlug ppTitle pCreatedAt, pBody = ppBody}
   pure NoContent
 
 deletePostHandler :: (MonadLogger m, MonadPost m, MonadAuth m, CanPostError e m) => Int -> Signed Value -> m NoContent
@@ -84,7 +111,8 @@ deletePostHandler postId (Signed sig _) = withNamespace "deletePost" . withConte
   postM <- getPostById postId
   case postM of
     Nothing -> logAndThrow $ _PostNotFoundError # postIdText
-    Just _  -> pure ()
+    Just _ -> pure ()
   deletePost postId
   pure NoContent
-  where postIdText = show postId :: Text
+  where
+    postIdText = show postId :: Text

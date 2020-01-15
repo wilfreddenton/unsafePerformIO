@@ -1,30 +1,51 @@
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Lib.Effects.Author where
 
-import           Control.Lens                     (view)
-import           Data.Aeson.Extended              (FromJSON, ToJSON,
-                                                   genericParseJSON,
-                                                   genericToJSON, parseJSON,
-                                                   snakeNoPrefix, toJSON)
-import           Database.SQLite.Simple           (Connection, FromRow,
-                                                   NamedParam ((:=)), ToRow,
-                                                   execute, executeNamed, field,
-                                                   fromRow, query_, toRow)
-import           Database.SQLite.Simple.FromField (FromField)
-import           Database.SQLite.Simple.ToField   (ToField)
-import           Lib.Db                           (CanDb, liftDbAction)
-import           Lib.Effects.Logger               (MonadLogger)
-import           Lib.Env                          (dConn)
-import           Lucid.Extended                   (ToHtml, a_, h3_, href_, li_,
-                                                   renderMarkdown, strong_,
-                                                   target_, toHtml, toHtmlRaw,
-                                                   ul_)
-import           Protolude
+import Control.Lens (view)
+import Data.Aeson.Extended
+  ( FromJSON,
+    ToJSON,
+    genericParseJSON,
+    genericToJSON,
+    parseJSON,
+    snakeNoPrefix,
+    toJSON,
+  )
+import Database.SQLite.Simple
+  ( FromRow,
+    NamedParam ((:=)),
+    ToRow,
+    execute,
+    executeNamed,
+    field,
+    fromRow,
+    query_,
+    toRow,
+  )
+import Database.SQLite.Simple.FromField (FromField)
+import Database.SQLite.Simple.ToField (ToField)
+import Lib.Db (CanDb, liftDbAction, onlyOneSqlite)
+import Lib.Effects.Logger (MonadLogger)
+import Lib.Env (dConn)
+import Lucid.Extended
+  ( ToHtml,
+    a_,
+    h3_,
+    href_,
+    li_,
+    renderMarkdown,
+    strong_,
+    target_,
+    toHtml,
+    toHtmlRaw,
+    ul_,
+  )
+import Protolude
 
 -- Types
 
@@ -32,29 +53,39 @@ newtype MyLocation = MyLocation Text
   deriving (Eq, Show, Generic, ToField, FromField, ToJSON, FromJSON)
 
 instance ToHtml MyLocation where
+
   toHtmlRaw = toHtml
-  toHtml (MyLocation location)= toHtml location
+
+  toHtml (MyLocation location) = toHtml location
 
 newtype Email = Email Text
-  deriving (Eq, Show, Generic,ToField, FromField, ToJSON, FromJSON)
+  deriving (Eq, Show, Generic, ToField, FromField, ToJSON, FromJSON)
 
 instance ToHtml Email where
+
   toHtmlRaw = toHtml
-  toHtml (Email email)= a_ [href_ $ "mailto:" <> email, target_ "_blank"] $ toHtml email
+
+  toHtml (Email email) = a_ [href_ $ "mailto:" <> email, target_ "_blank"] $ toHtml email
 
 newtype LinkedIn = LinkedIn Text
   deriving (Eq, Show, Generic, ToField, FromField, ToJSON, FromJSON)
 
 instance ToHtml LinkedIn where
+
   toHtmlRaw = toHtml
+
   toHtml (LinkedIn username) =
-    a_ [href_ $ "https://www.linkedin.com/in/" <> username, target_ "_blank"] . toHtml $ "linkedin.com/in/" <> username
+    a_ [href_ $ "https://www.linkedin.com/in/" <> username, target_ "_blank"]
+      . toHtml
+      $ "linkedin.com/in/" <> username
 
 newtype FacebookMessenger = FacebookMessenger Text
   deriving (Eq, Show, Generic, ToField, FromField, ToJSON, FromJSON)
 
 instance ToHtml FacebookMessenger where
+
   toHtmlRaw = toHtml
+
   toHtml (FacebookMessenger username) =
     a_ [href_ $ "https://m.me/" <> username, target_ "_blank"] . toHtml $ "m.me/" <> username
 
@@ -62,17 +93,23 @@ newtype Instagram = Instagram Text
   deriving (Eq, Show, Generic, ToField, FromField, ToJSON, FromJSON)
 
 instance ToHtml Instagram where
-  toHtmlRaw = toHtml
-  toHtml (Instagram username) =
-    a_ [href_ $ "https://www.instagram.com/" <> username, target_ "_blank"] . toHtml $ "instagram.com/" <> username
 
-data Contact = Contact {
-  cLocation          :: MyLocation
-, cEmail             :: Email
-, cLinkedIn          :: LinkedIn
-, cFacebookMessenger :: FacebookMessenger
-, cInstagram         :: Instagram
-} deriving (Eq, Show, Generic)
+  toHtmlRaw = toHtml
+
+  toHtml (Instagram username) =
+    a_ [href_ $ "https://www.instagram.com/" <> username, target_ "_blank"]
+      . toHtml
+      $ "instagram.com/" <> username
+
+data Contact
+  = Contact
+      { cLocation :: MyLocation,
+        cEmail :: Email,
+        cLinkedIn :: LinkedIn,
+        cFacebookMessenger :: FacebookMessenger,
+        cInstagram :: Instagram
+      }
+  deriving (Eq, Show, Generic)
 
 instance FromRow Contact where
   fromRow = Contact <$> field <*> field <*> field <*> field <*> field
@@ -87,7 +124,9 @@ instance FromJSON Contact where
   parseJSON = genericParseJSON snakeNoPrefix
 
 instance ToHtml Contact where
+
   toHtmlRaw = toHtml
+
   toHtml Contact {..} = ul_ $ do
     contactListItem "Location" cLocation
     contactListItem "Email" cEmail
@@ -99,10 +138,12 @@ instance ToHtml Contact where
         strong_ $ k <> ": "
         toHtml v
 
-data About = About {
-  aTitle :: Text
-, aBody  :: Text
-} deriving (Eq, Show, Generic)
+data About
+  = About
+      { aTitle :: Text,
+        aBody :: Text
+      }
+  deriving (Eq, Show, Generic)
 
 instance FromRow About where
   fromRow = About <$> field <*> field
@@ -117,7 +158,9 @@ instance FromJSON About where
   parseJSON = genericParseJSON snakeNoPrefix
 
 instance ToHtml About where
+
   toHtmlRaw = toHtml
+
   toHtml About {..} = do
     h3_ $ toHtml aTitle
     toHtml $ renderMarkdown aTitle aBody
@@ -125,56 +168,57 @@ instance ToHtml About where
 -- Class
 
 class Monad m => MonadAuthor m where
+
   getAbout :: m (Maybe About)
+
   editAbout :: About -> m ()
+
   getContact :: m (Maybe Contact)
+
   editContact :: Contact -> m ()
 
 -- Implementations
 
 -- SQLite
 
-onlyOneSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => (Connection -> IO [b]) -> m (Maybe b)
-onlyOneSqlite action = do
-  conn <- view dConn
-  rows <- liftDbAction $ action conn
-  pure $ case rows of
-    []    -> Nothing
-    [row] -> Just row
-    _     -> Nothing
-
 getAboutSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => m (Maybe About)
-getAboutSqlite = onlyOneSqlite $ action
-  where action conn = (query_ conn "SELECT title, body FROM about" :: IO [About])
+getAboutSqlite = onlyOneSqlite $ flip query_ "SELECT title, body FROM about"
 
 editAboutSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => About -> m ()
 editAboutSqlite about = do
   conn <- view dConn
   aboutM <- getAboutSqlite
   liftDbAction $ case aboutM of
-    Nothing -> (execute conn "INSERT INTO about (title, body) VALUES (?, ?)" about)
-    Just _ -> (executeNamed conn "UPDATE about SET title = :title, body = :body WHERE id = 1"
-              [ ":title" := aTitle about
-              , ":body" := aBody about
-              ])
+    Nothing -> execute conn "INSERT INTO about (title, body) VALUES (?, ?)" about
+    Just _ ->
+      executeNamed
+        conn
+        "UPDATE about SET title = :title, body = :body WHERE id = 1"
+        [ ":title" := aTitle about,
+          ":body" := aBody about
+        ]
 
 getContactSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => m (Maybe Contact)
-getContactSqlite = onlyOneSqlite $ action
-  where action conn = (query_ conn "SELECT location, email, linked_in, facebook_messenger, instagram FROM contact" :: IO [Contact])
+getContactSqlite =
+  onlyOneSqlite $
+    flip query_ "SELECT location, email, linked_in, facebook_messenger, instagram FROM contact"
 
 editContactSqlite :: (MonadLogger m, MonadIO m, CanDb e a m) => Contact -> m ()
-editContactSqlite contact@Contact{..} = do
+editContactSqlite contact@Contact {..} = do
   conn <- view dConn
   contactM <- getContactSqlite
   liftDbAction $ case contactM of
-    Nothing -> (execute conn "INSERT INTO contact (location, email, linked_in, facebook_messenger, instagram) VALUES (?, ?, ?, ?, ?)" contact)
-    Just _ -> (executeNamed conn "UPDATE contact SET location = :l, email = :e, linked_in = :li, facebook_messenger = :fm, instagram = :in WHERE id = 1"
-                [ ":l" := cLocation
-                , ":e" := cEmail
-                , ":li" := cLinkedIn
-                , ":fm" := cFacebookMessenger
-                , ":in" := cInstagram
-                ])
+    Nothing -> execute conn "INSERT INTO contact (location, email, linked_in, facebook_messenger, instagram) VALUES (?, ?, ?, ?, ?)" contact
+    Just _ ->
+      executeNamed
+        conn
+        "UPDATE contact SET location = :l, email = :e, linked_in = :li, facebook_messenger = :fm, instagram = :in WHERE id = 1"
+        [ ":l" := cLocation,
+          ":e" := cEmail,
+          ":li" := cLinkedIn,
+          ":fm" := cFacebookMessenger,
+          ":in" := cInstagram
+        ]
 
 -- Pure
 

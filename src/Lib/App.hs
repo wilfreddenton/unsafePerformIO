@@ -77,7 +77,16 @@ newtype App a
   = App
       { unApp :: KatipContextT (ReaderT AppEnv (ExceptT AppError IO)) a
       }
-  deriving (Monad, Functor, Applicative, MonadReader AppEnv, MonadError AppError, MonadIO, Katip, KatipContext)
+  deriving
+    ( Monad,
+      Functor,
+      Applicative,
+      MonadReader AppEnv,
+      MonadError AppError,
+      MonadIO,
+      Katip,
+      KatipContext
+    )
 
 instance MonadLogger App where
 
@@ -130,18 +139,17 @@ runLoggerT :: HasLoggerEnv e => e -> KatipContextT m a -> m a
 runLoggerT env = runKatipContextT (env ^. lLogEnv) (env ^. lContext) (env ^. lNamespace)
 
 toHttpError :: Request -> AppError -> ServerError
-toHttpError req appErr =
-  let headersMap = Map.fromList $ requestHeaders req
-      acceptHeaderM = Map.lookup hAccept headersMap
-      Status {statusCode, statusMessage} = httpStatus appErr
-      jsonTuple = (encode . toJSON, (hContentType, "application/json"))
-      htmlTuple = (renderBS . toHtml . Template "error", (hContentType, "text/html"))
-      (toBS, contentTypeHeader) = case acceptHeaderM of
-        Nothing -> jsonTuple
-        Just accept -> if B.isInfixOf "application/json" accept then jsonTuple else htmlTuple
-   in ServerError (statusCode) (show $ statusMessage) (toBS appErr) [contentTypeHeader]
+toHttpError req appErr = ServerError statusCode (show statusMessage) (toBS appErr) [contentTypeHeader]
+  where
+    acceptHeaderM = Map.lookup hAccept . Map.fromList $ requestHeaders req
+    Status {statusCode, statusMessage} = httpStatus appErr
+    jsonTuple = (encode . toJSON, (hContentType, "application/json"))
+    htmlTuple = (renderBS . toHtml . Template "error", (hContentType, "text/html"))
+    (toBS, contentTypeHeader) = case acceptHeaderM of
+      Nothing -> jsonTuple
+      Just accept -> if B.isInfixOf "application/json" accept then jsonTuple else htmlTuple
 
 appToHandler :: AppEnv -> Request -> App a -> Handler a
 appToHandler env req app = do
   res <- liftIO . runExceptT . flip runReaderT env . runLoggerT env $ unApp app
-  either (\e -> throwError (toHttpError req e)) pure res
+  either (throwError . toHttpError req) pure res

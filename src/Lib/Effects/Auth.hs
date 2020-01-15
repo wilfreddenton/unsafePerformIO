@@ -1,27 +1,39 @@
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DeriveGeneric   #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Lib.Effects.Auth where
 
-import           Control.Lens        (view, ( # ))
-import           Crypto.Gpgme        (errorString, verifyDetached)
-import           Data.Aeson.Extended (FromJSON, ToJSON, genericParseJSON,
-                                      genericToJSON, parseJSON, snakeNoPrefix,
-                                      toJSON)
-import qualified Data.Text.Encoding  as T
-import           Lib.Effects.Logger  (MonadLogger)
-import           Lib.Env             (CanAuthEnv, aCtx)
-import           Lib.Error           (CanApiError, logAndThrow, wrapIO,
-                                      _AuthorizationFailedError,
-                                      _UnauthorizedError)
-import           Protolude
+import Control.Lens ((#), view)
+import Crypto.Gpgme (errorString, verifyDetached)
+import Data.Aeson.Extended
+  ( FromJSON,
+    ToJSON,
+    genericParseJSON,
+    genericToJSON,
+    parseJSON,
+    snakeNoPrefix,
+    toJSON,
+  )
+import qualified Data.Text.Encoding as T
+import Lib.Effects.Logger (MonadLogger)
+import Lib.Env (CanAuthEnv, aCtx)
+import Lib.Error
+  ( CanApiError,
+    _AuthorizationFailedError,
+    _UnauthorizedError,
+    logAndThrow,
+    wrapIO,
+  )
+import Protolude
 
 -- Type
 
-data Signed a = Signed {
-  sSignature :: Text
-, sData      :: a
-} deriving Generic
+data Signed a
+  = Signed
+      { sSignature :: Text,
+        sData :: a
+      }
+  deriving (Generic)
 
 instance ToJSON a => ToJSON (Signed a) where
   toJSON = genericToJSON snakeNoPrefix
@@ -43,12 +55,12 @@ class Monad m => MonadAuth m where
 authorizeIO :: (MonadLogger m, MonadIO m, CanAuth e a m) => Text -> Text -> m ()
 authorizeIO sig clearText = do
   ctx <- view aCtx
-  resultE <- wrapIO (_AuthorizationFailedError #) $ verifyDetached ctx (T.encodeUtf8 sig) (T.encodeUtf8 clearText)
+  resultE <- wrapIO (_AuthorizationFailedError #) . verifyDetached ctx (T.encodeUtf8 sig) $ T.encodeUtf8 clearText
   case resultE of
-    Left _            -> fail
     Right [(e, _, _)] -> if errorString e == "Success" then pure () else fail
-    Right _           -> fail
-  where fail = logAndThrow (_UnauthorizedError # ())
+    _ -> fail
+  where
+    fail = logAndThrow (_UnauthorizedError # ())
 
 -- Pure
 

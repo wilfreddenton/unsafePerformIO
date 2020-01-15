@@ -2,26 +2,37 @@
 
 module Lib.Effects.Logger where
 
-import           Crypto.Random.Entropy  (getEntropy)
-import           Data.Aeson.Extended    (ToJSON, toJSON)
+import Crypto.Random.Entropy (getEntropy)
+import Data.Aeson.Extended (ToJSON, toJSON)
 import qualified Data.ByteString.Base16 as B
-import qualified Data.Text              as T
-import qualified Data.Text.Encoding     as T
-import           Katip                  (KatipContext, Namespace (Namespace),
-                                         Severity (..), getKatipNamespace,
-                                         katipAddContext, katipAddNamespace,
-                                         logStr, logTM)
-import           Lib.Orphans            ()
-import           Protolude
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import Katip
+  ( KatipContext,
+    Namespace (Namespace),
+    Severity (..),
+    getKatipNamespace,
+    katipAddContext,
+    katipAddNamespace,
+    logStr,
+    logTM,
+  )
+import Lib.Orphans ()
+import Protolude
 
 -- Typeclass
 class Monad m => MonadLogger m where
+
   debug :: Text -> m ()
+
   error :: Text -> m ()
+
   info :: Text -> m ()
+
   warn :: Text -> m ()
 
   withNamespace :: Text -> m a -> m a
+
   withContext :: ToJSON b => b -> m a -> m a
 
 -- Implementations
@@ -56,10 +67,10 @@ withNamespaceKatip :: (KatipContext m) => Text -> m a -> m a
 withNamespaceKatip namespace action = do
   currentNamespace <- getKatipNamespace
   baseNamespace <- case currentNamespace of
-        Namespace [] -> do
-          namespaceId <- liftIO $ randText 32
-          pure $ [namespaceId]
-        Namespace _ -> pure []
+    Namespace [] -> do
+      namespaceId <- liftIO $ randText 32
+      pure $ [namespaceId]
+    Namespace _ -> pure []
   katipAddNamespace (Namespace $ baseNamespace <> [namespace]) action
   where
     randText n = T.take n . T.decodeUtf8 . B.encode <$> (getEntropy . uncurry (+) $ divMod n 2)

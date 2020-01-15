@@ -1,10 +1,10 @@
 module Main where
 
-import           Protolude
-import           Spec.Auth        (authSpec)
-import           Spec.Server      (serverSpec)
-import           Test.Tasty       (defaultMain, testGroup)
-import           Test.Tasty.Hspec (testSpec)
+import Protolude
+import Spec.Auth (authSpec)
+import Spec.Server (serverSpec)
+import Test.Tasty (defaultMain, testGroup)
+import Test.Tasty.Hspec (testSpec)
 
 main :: IO ()
 main = do
