@@ -1,26 +1,27 @@
-module Lucid.Extended (
-  module Lucid
-, property_
-, button_
-, container_
-, row_
-, col_
-, colSm4_
-, colSm6_
-, colSm8_
-, colMd4_
-, colMd8_
-, renderMarkdown
-) where
+module Lucid.Extended
+  ( module Lucid,
+    property_,
+    button_,
+    container_,
+    row_,
+    col_,
+    colSm4_,
+    colSm6_,
+    colSm8_,
+    colMd4_,
+    colMd8_,
+    renderMarkdown,
+  )
+where
 
-import           Lucid      hiding (button_, col_)
-import           Lucid.Base (makeAttribute)
-import           Protolude
+import Lucid hiding (button_, col_)
+import Lucid.Base (makeAttribute)
+import Protolude
 import qualified Text.MMark as MMark
 
 renderMarkdown :: Text -> Text -> Html ()
 renderMarkdown name textToRender = case MMark.parse (show name) textToRender of
-  Left _  -> p_ "invalid markdown" -- should never run
+  Left _ -> p_ "invalid markdown" -- should never run
   Right m -> MMark.render m
 
 property_ :: Text -> Attribute
