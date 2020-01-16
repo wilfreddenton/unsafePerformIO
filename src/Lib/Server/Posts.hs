@@ -17,7 +17,6 @@ import Data.Aeson.Extended
     snakeNoPrefix,
     toJSON,
   )
-import qualified Data.Text as T
 import Lib.Effects.Auth (MonadAuth, Signed (Signed), authorize)
 import Lib.Effects.Logger
   ( MonadLogger,
@@ -39,11 +38,12 @@ import Lib.Effects.Post
 import Lib.Effects.Time (MonadTime, now)
 import Lib.Error
   ( CanPostError,
-    _PostBodyEmptyError,
     _PostNotFoundError,
-    _PostTitleEmptyError,
-    _PostTitleTooLongError,
+    _PostValidationError,
     logAndThrow,
+    throwInvalid,
+    validateLength,
+    validateMinLength,
   )
 import Lib.Server.Template (Template (Template))
 import Protolude
@@ -63,10 +63,9 @@ instance FromJSON PostPayload where
   parseJSON = genericParseJSON snakeNoPrefix
 
 validatePostPayload :: (MonadLogger m, CanPostError e m) => PostPayload -> m ()
-validatePostPayload PostPayload {..} = do
-  if T.length ppTitle > 280 then (logAndThrow $ _PostTitleTooLongError # ()) else pure ()
-  if T.length ppTitle == 0 then (logAndThrow $ _PostTitleEmptyError # ()) else pure ()
-  if T.length ppBody == 0 then (logAndThrow $ _PostBodyEmptyError # ()) else pure ()
+validatePostPayload PostPayload {..} =
+  throwInvalid _PostValidationError $
+    validateLength 3 280 "title" ppTitle <* validateMinLength 1 "body" ppBody
 
 getPostsHandler :: (MonadLogger m, MonadPost m) => m (Template [Post])
 getPostsHandler = withNamespace "getPosts" $ do

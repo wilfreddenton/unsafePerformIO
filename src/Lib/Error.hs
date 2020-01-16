@@ -66,7 +66,6 @@ data ApiError
   | AuthorizationFailedError Text
   | GetTimeError Text
   | RngError Text
-  | FieldTooLongError Text
   | UnauthorizedError
   deriving (Eq, Show)
 
@@ -77,7 +76,6 @@ instance HttpStatus ApiError where
   httpStatus (AuthorizationFailedError _) = status500
   httpStatus (GetTimeError _) = status500
   httpStatus (RngError _) = status500
-  httpStatus (FieldTooLongError _) = status400
   httpStatus UnauthorizedError = status401
 
 instance ErrorMessage ApiError where
@@ -85,7 +83,6 @@ instance ErrorMessage ApiError where
   errorMessage (AuthorizationFailedError err) = "Authorization of request failed with error: " <> err
   errorMessage (GetTimeError err) = "Could not complete request because getting current time failed with error: " <> err
   errorMessage (RngError err) = "Could not complete request because generating random bytes failed with error: " <> err
-  errorMessage (FieldTooLongError name) = "Value too long in field: " <> name
   errorMessage UnauthorizedError = "Unauthorized request"
 
 instance ToJSON ApiError where
@@ -143,24 +140,18 @@ instance ToHtml AuthorError where
 
 data PostError
   = PostNotFoundError Text
-  | PostTitleTooLongError
-  | PostTitleEmptyError
-  | PostBodyEmptyError
+  | PostValidationError Text
   deriving (Eq, Show)
 
 makeClassyPrisms ''PostError
 
 instance HttpStatus PostError where
   httpStatus (PostNotFoundError _) = status404
-  httpStatus PostTitleTooLongError = status400
-  httpStatus PostTitleEmptyError = status400
-  httpStatus PostBodyEmptyError = status400
+  httpStatus (PostValidationError _) = status400
 
 instance ErrorMessage PostError where
   errorMessage (PostNotFoundError slug) = "No post is associated with identifier: " <> slug
-  errorMessage PostTitleTooLongError = "Post title must be <= 280 characters"
-  errorMessage PostTitleEmptyError = "Post title cannot be empty"
-  errorMessage PostBodyEmptyError = "Post body cannot be empty"
+  errorMessage (PostValidationError err) = "Submitted post data invalid: \n" <> err
 
 instance ToJSON PostError where
   toJSON = toJSON'
@@ -249,19 +240,25 @@ type AppValidation = Validation (NonEmpty Text) ()
 failure :: Text -> AppValidation
 failure = Failure . flip (:|) []
 
+validateMinLength :: (Coercible a Text) => Int -> Text -> a -> AppValidation
+validateMinLength lo fieldName field =
+  if lo <= T.length (coerce field)
+    then Success ()
+    else failure $ "Field '" <> fieldName <> "' must " <> msgPart
+  where
+    msgPart = case lo of
+      1 -> "not be empty."
+      _ -> "be at least " <> show lo <> " characters long."
+
+validateMaxLength :: (Coercible a Text) => Int -> Text -> a -> AppValidation
+validateMaxLength hi fieldName field =
+  if T.length (coerce field) <= hi
+    then Success ()
+    else failure $ "Field '" <> fieldName <> "' can be at most " <> show hi <> " characters long."
+
 validateLength :: (Coercible a Text) => Int -> Int -> Text -> a -> AppValidation
 validateLength lo hi fieldName field =
-  if (&&) <$> (lo <=) <*> (<= hi) $ T.length (coerce field)
-    then Success ()
-    else
-      failure $
-        "Field '"
-          <> fieldName
-          <> "' must be at least "
-          <> show lo
-          <> " and at most "
-          <> show hi
-          <> " characters long."
+  validateMinLength lo fieldName field <* validateMaxLength hi fieldName field
 
 throwInvalid :: (MonadLogger m, CanError e m) => Prism' e Text -> AppValidation -> m ()
 throwInvalid _ (Success _) = pure ()

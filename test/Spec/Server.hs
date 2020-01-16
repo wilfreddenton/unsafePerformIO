@@ -182,12 +182,24 @@ serverSpec = before_ resetDb $ do
       testBody = "body"
       testSlug = makeSlug testTitle testTime
   describe "Create Post Handler" $ do
-    it "returns PostTitleTooLongError" $
-      runCreatePostHandler testInvalidTitle "" `shouldReturn` postError PostTitleTooLongError
-    it "returns PostTitleEmptyError" $
-      runCreatePostHandler "" "" `shouldReturn` postError PostTitleEmptyError
-    it "returns PostBodyEmptyError" $
-      runCreatePostHandler testTitle "" `shouldReturn` postError PostBodyEmptyError
+    it "returns PostValidationError when title is too long" $
+      runCreatePostHandler testInvalidTitle "foo"
+        `shouldReturn` postError (PostValidationError "Field 'title' can be at most 280 characters long.")
+    it "returns PostValidationError when title is empty" $
+      runCreatePostHandler "" "foo"
+        `shouldReturn` postError (PostValidationError "Field 'title' must be at least 3 characters long.")
+    it "returns PostValidationError when body is empty" $
+      runCreatePostHandler testTitle ""
+        `shouldReturn` postError (PostValidationError "Field 'body' must not be empty.")
+    it "returns PostValidationError when title and body are empty" $
+      runCreatePostHandler "" ""
+        `shouldReturn` postError
+          ( PostValidationError . T.strip $
+              T.unlines
+                [ "Field 'title' must be at least 3 characters long.",
+                  "Field 'body' must not be empty."
+                ]
+          )
     it "creates Post" $ do
       runCreatePostHandler testTitle testBody `shouldReturn` Right NoContent
       runGetPostHandler testSlug
@@ -198,12 +210,24 @@ serverSpec = before_ resetDb $ do
       newTestBody = "new body"
       newTestSlug = makeSlug newTestTitle testTime
   describe "Edit Post Handler" $ do
-    it "returns PostTitleTooLongError" $
-      runEditPostHandler 1 testInvalidTitle "" `shouldReturn` postError PostTitleTooLongError
-    it "returns PostTitleEmptyError" $
-      runEditPostHandler 1 "" "" `shouldReturn` postError PostTitleEmptyError
-    it "returns PostBodyEmptyError" $
-      runEditPostHandler 1 testTitle "" `shouldReturn` postError PostBodyEmptyError
+    it "returns PostValidationError when title is too long" $
+      runEditPostHandler 1 testInvalidTitle "foo"
+        `shouldReturn` postError (PostValidationError "Field 'title' can be at most 280 characters long.")
+    it "returns PostValidationError when title is empty" $
+      runEditPostHandler 1 "" "foo"
+        `shouldReturn` postError (PostValidationError "Field 'title' must be at least 3 characters long.")
+    it "returns PostValidationError when body is empty" $
+      runEditPostHandler 1 testTitle ""
+        `shouldReturn` postError (PostValidationError "Field 'body' must not be empty.")
+    it "returns PostValidationError when title and body are empty" $
+      runEditPostHandler 1 "" ""
+        `shouldReturn` postError
+          ( PostValidationError . T.strip $
+              T.unlines
+                [ "Field 'title' must be at least 3 characters long.",
+                  "Field 'body' must not be empty."
+                ]
+          )
     it "returns PostNotFoundError" $
       runEditPostHandler 1 newTestTitle newTestBody `shouldReturn` postError (PostNotFoundError "1")
     it "edits Post" $ do
@@ -234,7 +258,7 @@ serverSpec = before_ resetDb $ do
       runEditAboutHandler (About testInvalidTitle "")
         `shouldReturn` authorError
           ( AboutValidationError
-              "Field 'title' must be at least 3 and at most 280 characters long."
+              "Field 'title' can be at most 280 characters long."
           )
   it "creates and edits About" $ do
     runEditAboutHandler testAbout `shouldReturn` Right NoContent
@@ -254,14 +278,15 @@ serverSpec = before_ resetDb $ do
       newTestContact = testContact {cEmail = newTestContactE, cFacebookMessenger = newTestContactFm}
   describe "Edit Contact Handler" $ do
     it "returns ContactValidationError" $ do
-      runEditContactHandler (newContact "" "test@test.com" "" "" "")
+      runEditContactHandler (newContact "" testInvalidTitle "" "" "")
         `shouldReturn` authorError
           ( ContactValidationError . T.strip $
               T.unlines
-                [ "Field 'location' must be at least 3 and at most 280 characters long.",
-                  "Field 'LinkedIn' must be at least 3 and at most 280 characters long.",
-                  "Field 'Facebook Messenger' must be at least 3 and at most 280 characters long.",
-                  "Field 'Instagram' must be at least 3 and at most 280 characters long."
+                [ "Field 'location' must be at least 3 characters long.",
+                  "Field 'email' can be at most 280 characters long.",
+                  "Field 'LinkedIn' must be at least 3 characters long.",
+                  "Field 'Facebook Messenger' must be at least 3 characters long.",
+                  "Field 'Instagram' must be at least 3 characters long."
                 ]
           )
     it "creates and edits Contact" $ do

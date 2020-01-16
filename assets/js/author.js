@@ -20,7 +20,7 @@ function run(openpgp, publicKey) {
     submits: document.querySelectorAll('.button'),
     privateKey: document.getElementById('private-key'),
     passphrase: document.getElementById('passphrase'),
-    toggles : document.querySelectorAll('.toggle')
+    toggles: document.querySelectorAll('.toggle')
   }
 
   const sign = async clearText => {
