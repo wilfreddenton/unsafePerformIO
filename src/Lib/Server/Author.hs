@@ -1,10 +1,11 @@
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Lib.Server.Author where
 
 import Control.Lens ((#), view)
-import Data.Coerce (coerce)
 import qualified Data.Text as T
 import Lib.Effects.Auth (MonadAuth, Signed (Signed), authorize)
 import Lib.Effects.Author
@@ -24,34 +25,36 @@ import Lib.Effects.Logger (MonadLogger, info, withNamespace)
 import Lib.Effects.Post (MonadPost, getPosts)
 import Lib.Env (CanAuthEnv, PgpKey, aPgpKey)
 import Lib.Error
-  ( CanApiError,
-    _FieldTooLongError,
+  ( AppValidation,
+    CanApiError,
+    CanAuthorError,
+    _AboutValidationError,
+    _ContactValidationError,
     _NotFoundError,
     logAndThrow,
+    throwInvalid,
+    validateLength,
   )
 import Lib.Server.Template (AuthorTemplate (..), Template (..))
 import Protolude
 import Servant (NoContent (NoContent))
 
-type CanAuthor e m = (MonadLogger m, MonadAuthor m, CanApiError e m)
+type CanAuthor e m = (MonadLogger m, MonadAuthor m, CanApiError e m, CanAuthorError e m)
 
-validateAbout :: (MonadLogger m, CanApiError e m) => About -> m ()
-validateAbout About {..} = lengthCheck "title" aTitle
-  where
-    maxLen = 280
-    lengthCheck fieldName field = if T.length field > maxLen then (logAndThrow $ _FieldTooLongError # fieldName) else pure ()
+validateAbout :: (MonadLogger m, CanAuthorError e m) => About -> m ()
+validateAbout About {..} = throwInvalid _AboutValidationError $ validateLength 3 280 "title" aTitle
 
-validateContact :: (MonadLogger m, CanApiError e m) => Contact -> m ()
-validateContact Contact {..} = do
-  lengthCheck "location" cLocation
-  lengthCheck "location" cEmail
-  lengthCheck "location" cLinkedIn
-  lengthCheck "location" cFacebookMessenger
-  lengthCheck "location" cInstagram
+validateContact :: (MonadLogger m, CanAuthorError e m) => Contact -> m ()
+validateContact Contact {..} =
+  throwInvalid _ContactValidationError $
+    validateLength' "location" cLocation
+      <* validateLength' "email" cEmail
+      <* validateLength' "LinkedIn" cLinkedIn
+      <* validateLength' "Facebook Messenger" cFacebookMessenger
+      <* validateLength' "Instagram" cInstagram
   where
-    maxLen = 280
-    lengthCheck fieldName field =
-      if T.length (coerce field) > maxLen then (logAndThrow $ _FieldTooLongError # fieldName) else pure ()
+    validateLength' :: (Coercible a Text) => Text -> a -> AppValidation
+    validateLength' = validateLength 3 280
 
 baseHandler :: CanAuthor e m => Text -> m (Maybe a) -> m (Template a)
 baseHandler title action = withNamespace loweredTitle $ do

@@ -71,9 +71,9 @@ import Lib.Effects.Post
 import Lib.Effects.Time (MonadTime, now)
 import Lib.Env (DbEnv, HasDbEnv (..), newDbEnv)
 import Lib.Error
-  ( ApiError (FieldTooLongError, NotFoundError),
-    AppError (AppApiError),
-    AppError (AppPostError),
+  ( ApiError (NotFoundError),
+    AppError (AppApiError, AppAuthorError, AppPostError),
+    AuthorError (AboutValidationError, ContactValidationError),
     PostError (..),
   )
 import Lib.Server.Author
@@ -175,6 +175,7 @@ serverSpec = before_ resetDb $ do
   let runCreatePostHandler title body = runMockApp . createPostHandler . Signed "" $ PostPayload title body
       runGetPostHandler = runMockApp . getPostHandler
       postError = Left . AppPostError
+      authorError = Left . AppAuthorError
       postSuccess name = Right . Template name
       testInvalidTitle = T.replicate 281 "c"
       testTitle = "title"
@@ -229,13 +230,17 @@ serverSpec = before_ resetDb $ do
       newTestAbout = About "newtitle" "newbody"
       aboutSucces = Right . Template "About"
   describe "Edit About Handler" $ do
-    it "returns FieldTooLongError" $
-      runEditAboutHandler (About testInvalidTitle "") `shouldReturn` apiError (FieldTooLongError "title")
-    it "creates and edits About" $ do
-      runEditAboutHandler testAbout `shouldReturn` Right NoContent
-      runGetAboutHandler `shouldReturn` aboutSucces testAbout
-      runEditAboutHandler newTestAbout `shouldReturn` Right NoContent
-      runGetAboutHandler `shouldReturn` aboutSucces newTestAbout
+    it "returns AboutValidationError" $
+      runEditAboutHandler (About testInvalidTitle "")
+        `shouldReturn` authorError
+          ( AboutValidationError
+              "Field 'title' must be at least 3 and at most 280 characters long."
+          )
+  it "creates and edits About" $ do
+    runEditAboutHandler testAbout `shouldReturn` Right NoContent
+    runGetAboutHandler `shouldReturn` aboutSucces testAbout
+    runEditAboutHandler newTestAbout `shouldReturn` Right NoContent
+    runGetAboutHandler `shouldReturn` aboutSucces newTestAbout
   let runGetContactHandler = runMockApp getContactHandler
       newContact l e li f i = Contact (MyLocation l) (Email e) (LinkedIn li) (FacebookMessenger f) (Instagram i)
       testContact = newContact "location" "email" "linked_in" "facebook_messenger" "instagram"
@@ -248,12 +253,17 @@ serverSpec = before_ resetDb $ do
       newTestContactFm = FacebookMessenger "new_facebook_messenger"
       newTestContact = testContact {cEmail = newTestContactE, cFacebookMessenger = newTestContactFm}
   describe "Edit Contact Handler" $ do
-    it "returns FieldTooLongError" $ do
-      runEditContactHandler (newContact testInvalidTitle "" "" "" "") `shouldReturn` apiError (FieldTooLongError "location")
-      runEditContactHandler (newContact "" testInvalidTitle "" "" "") `shouldReturn` apiError (FieldTooLongError "location")
-      runEditContactHandler (newContact "" "" testInvalidTitle "" "") `shouldReturn` apiError (FieldTooLongError "location")
-      runEditContactHandler (newContact "" "" "" testInvalidTitle "") `shouldReturn` apiError (FieldTooLongError "location")
-      runEditContactHandler (newContact "" "" "" "" testInvalidTitle) `shouldReturn` apiError (FieldTooLongError "location")
+    it "returns ContactValidationError" $ do
+      runEditContactHandler (newContact "" "test@test.com" "" "" "")
+        `shouldReturn` authorError
+          ( ContactValidationError . T.strip $
+              T.unlines
+                [ "Field 'location' must be at least 3 and at most 280 characters long.",
+                  "Field 'LinkedIn' must be at least 3 and at most 280 characters long.",
+                  "Field 'Facebook Messenger' must be at least 3 and at most 280 characters long.",
+                  "Field 'Instagram' must be at least 3 and at most 280 characters long."
+                ]
+          )
     it "creates and edits Contact" $ do
       runEditContactHandler testContact `shouldReturn` Right NoContent
       runGetContactHandler `shouldReturn` contactSuccess testContact

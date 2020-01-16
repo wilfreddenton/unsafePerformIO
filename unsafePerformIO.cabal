@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.1.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8c79f9d4a9f0a2741e8951356552bf8621d7ad837eed6f03d464efc681a3345f
+-- hash: 15db10a7b6e1211ddb7f80c6c6803540477bafce47c730a1d51f8137bee6f3e6
 
 name:           unsafePerformIO
 version:        1.0.0
@@ -83,6 +83,7 @@ library
     , template-haskell
     , text
     , time
+    , validation
     , wai
     , wai-middleware-throttle
     , warp
@@ -129,6 +130,7 @@ executable unsafe-perform-io
     , text
     , time
     , unsafePerformIO
+    , validation
     , wai
     , wai-middleware-throttle
     , warp
@@ -177,6 +179,7 @@ test-suite unsafe-perform-io-test
     , text
     , time
     , unsafePerformIO
+    , validation
     , wai
     , wai-middleware-throttle
     , warp

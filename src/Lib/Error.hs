@@ -1,13 +1,18 @@
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Lib.Error where
 
-import Control.Lens (makeClassyPrisms)
+import Control.Lens ((#), Prism', makeClassyPrisms)
 import Data.Aeson.Extended ((.=), ToJSON, Value, object, toJSON)
+import Data.Coerce (coerce)
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import Data.Validation (Validation (..))
 import Lib.Effects.Logger
   ( MonadLogger,
     error,
@@ -113,6 +118,29 @@ instance ToHtml DbError where
 
   toHtml = toHtml'
 
+data AuthorError
+  = AboutValidationError Text
+  | ContactValidationError Text
+  deriving (Eq, Show)
+
+makeClassyPrisms ''AuthorError
+
+instance HttpStatus AuthorError where
+  httpStatus _ = status400
+
+instance ErrorMessage AuthorError where
+  errorMessage (AboutValidationError err) = "Submitted about info invalid: \n" <> err
+  errorMessage (ContactValidationError err) = "Submitted contact info invalid: \n" <> err
+
+instance ToJSON AuthorError where
+  toJSON = toJSON'
+
+instance ToHtml AuthorError where
+
+  toHtmlRaw = toHtml
+
+  toHtml = toHtml'
+
 data PostError
   = PostNotFoundError Text
   | PostTitleTooLongError
@@ -145,6 +173,7 @@ instance ToHtml PostError where
 
 data AppError
   = AppApiError ApiError
+  | AppAuthorError AuthorError
   | AppPostError PostError
   | AppDbError DbError
   deriving (Eq, Show)
@@ -154,6 +183,9 @@ makeClassyPrisms ''AppError
 instance AsApiError AppError where
   _ApiError = _AppApiError . _ApiError
 
+instance AsAuthorError AppError where
+  _AuthorError = _AppAuthorError . _AuthorError
+
 instance AsDbError AppError where
   _DbError = _AppDbError . _DbError
 
@@ -161,20 +193,23 @@ instance AsPostError AppError where
   _PostError = _AppPostError . _PostError
 
 instance HttpStatus AppError where
+  httpStatus (AppApiError err) = httpStatus err
+  httpStatus (AppAuthorError err) = httpStatus err
   httpStatus (AppPostError err) = httpStatus err
   httpStatus (AppDbError err) = httpStatus err
-  httpStatus (AppApiError err) = httpStatus err
 
 instance ErrorMessage AppError where
+  errorMessage (AppApiError err) = errorMessage err
+  errorMessage (AppAuthorError err) = errorMessage err
   errorMessage (AppPostError err) = errorMessage err
   errorMessage (AppDbError err) = errorMessage err
-  errorMessage (AppApiError err) = errorMessage err
 
 instance ToJSON AppError where
   toJSON appErr = case appErr of
+    AppApiError err -> toJSON'' err
+    AppAuthorError err -> toJSON'' err
     AppPostError err -> toJSON'' err
     AppDbError err -> toJSON'' err
-    AppApiError err -> toJSON'' err
     where
       toJSON'' err = object ["error" .= toJSON err]
 
@@ -182,9 +217,10 @@ instance ToHtml AppError where
 
   toHtmlRaw = toHtml
 
+  toHtml (AppApiError err) = toHtml err
+  toHtml (AppAuthorError err) = toHtml err
   toHtml (AppPostError err) = toHtml err
   toHtml (AppDbError err) = toHtml err
-  toHtml (AppApiError err) = toHtml err
 
 logAndThrow :: (MonadLogger m, MonadError e m, ToJSON e) => e -> m a
 logAndThrow err = withNamespace "error" . withContext err $ do
@@ -202,6 +238,31 @@ type CanError e m = (MonadError e m, ToJSON e)
 
 type CanApiError e m = (CanError e m, AsApiError e)
 
+type CanAuthorError e m = (CanError e m, AsAuthorError e)
+
 type CanPostError e m = (CanError e m, AsPostError e)
 
 type CanDbError e m = (CanError e m, AsDbError e)
+
+type AppValidation = Validation (NonEmpty Text) ()
+
+failure :: Text -> AppValidation
+failure = Failure . flip (:|) []
+
+validateLength :: (Coercible a Text) => Int -> Int -> Text -> a -> AppValidation
+validateLength lo hi fieldName field =
+  if (&&) <$> (lo <=) <*> (<= hi) $ T.length (coerce field)
+    then Success ()
+    else
+      failure $
+        "Field '"
+          <> fieldName
+          <> "' must be at least "
+          <> show lo
+          <> " and at most "
+          <> show hi
+          <> " characters long."
+
+throwInvalid :: (MonadLogger m, CanError e m) => Prism' e Text -> AppValidation -> m ()
+throwInvalid _ (Success _) = pure ()
+throwInvalid mkError (Failure errs) = logAndThrow $ mkError # (T.strip . T.unlines $ NE.toList errs)

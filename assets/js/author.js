@@ -75,6 +75,8 @@ function run(openpgp, publicKey) {
 
   function send(method, endpoint, detachedSignature, data) {
     return new Promise((resolve, reject) => {
+      var status = null;
+      var ok = null;
       fetch(endpoint, {
         method: method,
         body: JSON.stringify({signature: detachedSignature, data: data}),
@@ -82,11 +84,15 @@ function run(openpgp, publicKey) {
           'Content-Type': 'application/json',
         }
       }).then((response) => {
-        if (!response.ok) {
-          throw `request to ${endpoint} failed: ${response.status}`;
+        ok = response.ok;
+        status = response.status;
+        return response.json();
+      }).then((body) => {
+        if (!ok) {
+          throw `request to ${endpoint} failed: ${status} - ${body['error']['message']}`;
         }
 
-        resolve(response);
+        resolve(body);
       }).catch((failure) => {
         reject(failure);
       });
@@ -97,7 +103,7 @@ function run(openpgp, publicKey) {
     return new Promise((resolve, reject) => {
       sign(clearText).then((detachedSignature) => {
         return send((typeof method === 'undefined') ? 'POST' : method, endpoint, detachedSignature, data);
-      }).then((res) => {
+      }).then((_) => {
         alert('The request was signed and sent successfully!');
       }).catch((failure) => {
         alert(failure);
