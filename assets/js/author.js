@@ -1,177 +1,153 @@
-function main() {
-  var openpgp = window.openpgp;
-  openpgp.initWorker({ path: '/static/js/openpgp.worker.min.js' });
+async function main() {
+  const openpgp = window.openpgp
+  openpgp.initWorker({path: '/static/js/openpgp.worker.min.js'})
 
-  publicKeyArmored = window.PUBLIC_KEY;
-  openpgp.key.readArmored(publicKeyArmored).then(({err, keys}) => {
+  const publicKeyArmored = window.PUBLIC_KEY
+  try {
+    const {err, keys} = await openpgp.key.readArmored(publicKeyArmored)
     if (err) {
-      throw 'Failed to read public key with ' + err[0];
+      throw `Failed to read public key with ${err[0]}`
     }
 
-    run(openpgp, keys[0]);
-  }).catch((failure) => {
-    alert(failure);
-  });
+    await run(openpgp, keys[0])
+  } catch (error) {
+    alert(error)
+  }
 }
 
-function run(openpgp, publicKey) {
-  var refs = {
+async function run(openpgp, publicKey) {
+  const refs = {
     submits: document.querySelectorAll('.button'),
     privateKey: document.getElementById('private-key'),
     passphrase: document.getElementById('passphrase'),
     toggles : document.querySelectorAll('.toggle')
-  };
-
-  function sign(clearText) {
-    return new Promise((resolve, reject) => {
-      var privateKeyArmored = refs.privateKey.value;
-      var passphrase = refs.passphrase.value;
-      var message = openpgp.cleartext.fromText(clearText);
-      var privateKey = null;
-      var detachedSignature = null;
-
-      openpgp.key.readArmored(privateKeyArmored).then(({ err, keys }) => {
-        if (err) {
-          throw 'Failed to read private key with ' + err[0];
-        }
-
-        privateKey = keys[0];
-        return privateKey.decrypt(passphrase);
-      }).then(success => {
-        if (!success) {
-          throw 'Failed to decrypt private key with provided passphrase';
-        }
-
-        options = {
-          message: message,
-          privateKeys: [privateKey],
-          detached: true
-        };
-
-        return openpgp.sign(options);
-      }).then(signed => {
-        detachedSignature = signed.signature;
-
-        return openpgp.signature.readArmored(detachedSignature);
-      }).then((signature) => {
-        options = {
-          message: message,
-          signature: signature,
-          publicKeys: [publicKey]
-        };
-
-        return openpgp.verify(options);
-      }).then(verified => {
-        if (!verified.signatures[0].valid) {
-          throw 'Failed to verify signature. Are you using the right private key?';
-        }
-
-        resolve(detachedSignature);
-      }).catch((failure) => {
-        reject(failure);
-      });
-    });
   }
 
-  function send(method, endpoint, detachedSignature, data) {
-    return new Promise((resolve, reject) => {
-      var status = null;
-      var ok = null;
-      fetch(endpoint, {
-        method: method,
-        body: JSON.stringify({signature: detachedSignature, data: data}),
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }).then((response) => {
-        ok = response.ok;
-        status = response.status;
-        return response.json();
-      }).then((body) => {
-        if (!ok) {
-          throw `request to ${endpoint} failed: ${status} - ${body['error']['message']}`;
-        }
+  const sign = async clearText => {
+    const privateKeyArmored = refs.privateKey.value
+    const passphrase = refs.passphrase.value
+    const message = openpgp.cleartext.fromText(clearText)
 
-        resolve(body);
-      }).catch((failure) => {
-        reject(failure);
-      });
-    });
+    const {err, keys} = await openpgp.key.readArmored(privateKeyArmored)
+    if (err) {
+      throw `Failed to read private key with ${err[0]}`
+    }
+
+    const privateKey = keys[0]
+    const success = await privateKey.decrypt(passphrase)
+    if (!success) {
+      throw 'Failed to decrypt private key with provided passphrase'
+    }
+
+    const signed = await openpgp.sign({
+      message: message,
+      privateKeys: [privateKey],
+      detached: true
+    })
+
+    const detachedSignature = signed.signature
+    const signature = await openpgp.signature.readArmored(detachedSignature)
+    const verified = await openpgp.verify({
+      message: message,
+      signature: signature,
+      publicKeys: [publicKey]
+    })
+
+    if (!verified.signatures[0].valid) {
+      throw 'Failed to verify signature. Are you using the right private key?'
+    }
+
+    return detachedSignature
   }
 
-  function signAndSend(endpoint, clearText, data, method) {
-    return new Promise((resolve, reject) => {
-      sign(clearText).then((detachedSignature) => {
-        return send((typeof method === 'undefined') ? 'POST' : method, endpoint, detachedSignature, data);
-      }).then((_) => {
-        alert('The request was signed and sent successfully!');
-      }).catch((failure) => {
-        alert(failure);
-      });
-    });
+  const send = async (method, endpoint, detachedSignature, data) => {
+    const response = await fetch(endpoint, {
+      method: method,
+      body: JSON.stringify({signature: detachedSignature, data: data}),
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+
+    const body = await response.json()
+    if (!response.ok) {
+      throw `request to ${endpoint} failed: ${response.status} - ${body['error']['message']}`
+    }
+
+    return body
   }
 
-  var formHandlers = {
-    'post': (form) => {
-      var title = form.title.value.trim();
-      var body = form.body.value.trim();
-      signAndSend('/posts', title + body, {'title': title, 'body': body});
+  const signAndSend = async (endpoint, clearText, data, method) => {
+    try {
+      const detachedSignature = await sign(clearText)
+      await send((typeof method === 'undefined') ? 'POST' : method, endpoint, detachedSignature, data)
+      alert('The request was signed and sent successfully!')
+    } catch (error) {
+      alert(error)
+    }
+  }
+
+  const formHandlers = {
+    'post': async form => {
+      const title = form.title.value.trim()
+      const body = form.body.value.trim()
+      await signAndSend('/posts', title + body, {'title': title, 'body': body})
     },
-    'editpost': (form) => {
-      var id = form.postId.value.trim();
-      var title = form.title.value.trim();
-      var body = form.body.value.trim();
-      signAndSend(`/posts/${id}`, title + body, {'title': title, 'body': body}, 'PUT');
+    'editpost': async form => {
+      const id = form.postId.value.trim()
+      const title = form.title.value.trim()
+      const body = form.body.value.trim()
+      await signAndSend(`/posts/${id}`, title + body, {'title': title, 'body': body}, 'PUT')
     },
-    'deletepost': (form) => {
-      var id = form.postId.value.trim();
-      var b = confirm('Confirm post deletion.');
+    'deletepost': async form => {
+      const id = form.postId.value.trim()
+      const b = confirm('Confirm post deletion.')
       if (b) {
-        signAndSend(`/posts/${id}`, id, null, 'DELETE');
+        await signAndSend(`/posts/${id}`, id, null, 'DELETE')
       }
     },
-    'about': (form) => {
-      var title = form.title.value.trim();
-      var body = form.body.value.trim();
-      signAndSend('/about', title + body, {'title': title, 'body': body});
+    'about': async form => {
+      const title = form.title.value.trim()
+      const body = form.body.value.trim()
+      await signAndSend('/about', title + body, {'title': title, 'body': body})
     },
-    'contact': (form) => {
-      var location = form.location.value.trim();
-      var email = form.email.value.trim();
-      var linkedIn = form.linkedIn.value.trim();
-      var facebookMessenger = form.facebookMessenger.value.trim();
-      var instagram = form.instagram.value.trim();
-      signAndSend('/contact', location + email + linkedIn + facebookMessenger + instagram, {
+    'contact': async form => {
+      const location = form.location.value.trim()
+      const email = form.email.value.trim()
+      const linkedIn = form.linkedIn.value.trim()
+      const facebookMessenger = form.facebookMessenger.value.trim()
+      const instagram = form.instagram.value.trim()
+      await signAndSend('/contact', location + email + linkedIn + facebookMessenger + instagram, {
         'location': location,
         'email': email,
         'linked_in': linkedIn,
         'facebook_messenger': facebookMessenger,
         'instagram': instagram
-      });
+      })
     }
-  };
+  }
 
-  refs.toggles.forEach((toggle) => {
-    toggle.addEventListener('click', (e) => {
-      e.target.nextSibling.classList.toggle('hidden');
-    });
-  });
+  refs.toggles.forEach(toggle => {
+    toggle.addEventListener('click', e => {
+      e.target.nextSibling.classList.toggle('hidden')
+    })
+  })
 
-  refs.submits.forEach((submit) => {
-    submit.addEventListener('click', (e) => {
-      e.preventDefault();
-      var form = e.target.parentElement;
-      var key = form.id.split('-')[0];
+  refs.submits.forEach(submit => {
+    submit.addEventListener('click', async e => {
+      e.preventDefault()
+      const form = e.target.parentElement
+      var key = form.id.split('-')[0]
       if (e.target.innerHTML === 'delete') {
-        key = 'deletepost';
+        key = 'deletepost'
       }
-      formHandlers[key](form);
-    });
-  });
+      await formHandlers[key](form)
+    })
+  })
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", main);
+  document.addEventListener("DOMContentLoaded", main)
 } else {
-  main();
+  main()
 }
