@@ -135,7 +135,7 @@ function run(openpgp, publicKey) {
     submit.addEventListener('click', async e => {
       e.preventDefault()
       const form = e.target.parentElement
-      var key = form.id.split('-')[0]
+      let key = form.id.split('-')[0]
       if (e.target.innerHTML === 'delete') {
         key = 'deletepost'
       }
