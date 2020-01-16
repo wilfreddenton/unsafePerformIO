@@ -9,13 +9,13 @@ async function main() {
       throw `Failed to read public key with ${err[0]}`
     }
 
-    await run(openpgp, keys[0])
+    run(openpgp, keys[0])
   } catch (error) {
     alert(error)
   }
 }
 
-async function run(openpgp, publicKey) {
+function run(openpgp, publicKey) {
   const refs = {
     submits: document.querySelectorAll('.button'),
     privateKey: document.getElementById('private-key'),
