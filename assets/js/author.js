@@ -60,21 +60,19 @@ function run(openpgp, publicKey) {
     return detachedSignature
   }
 
-  const send = async (method, endpoint, detachedSignature, data) => {
+  const send = async (method, endpoint, signature, data) => {
     const response = await fetch(endpoint, {
       method: method,
-      body: JSON.stringify({signature: detachedSignature, data: data}),
+      body: JSON.stringify({signature, data}),
       headers: {
         'Content-Type': 'application/json',
       }
     })
 
-    const body = await response.json()
     if (!response.ok) {
+      const body = await response.json()
       throw `request to ${endpoint} failed: ${response.status} - ${body['error']['message']}`
     }
-
-    return body
   }
 
   const signAndSend = async (endpoint, clearText, data, method) => {
