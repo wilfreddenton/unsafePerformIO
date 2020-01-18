@@ -59,10 +59,7 @@ validateContact Contact {..} =
 baseHandler :: CanAuthor e m => Text -> m (Maybe a) -> m (Template a)
 baseHandler title action = withNamespace loweredTitle $ do
   info $ "request for " <> title
-  aM <- action
-  case aM of
-    Nothing -> logAndThrow $ _NotFoundError # loweredTitle
-    Just a -> pure $ Template title a
+  maybe (logAndThrow $ _NotFoundError # loweredTitle) (pure . Template title) =<< action
   where
     loweredTitle = T.toLower title
 
