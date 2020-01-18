@@ -75,43 +75,45 @@ getPostsHandler = withNamespace "getPosts" $ do
 getPostHandler :: (MonadLogger m, MonadPost m, CanPostError e m) => Text -> m (Template Post)
 getPostHandler slug = withNamespace "getPost" . withContext (object ["slug" .= slug]) $ do
   info "request for post"
-  postM <- getPostBySlug slug
-  post@Post {..} <- case postM of
-    Nothing -> logAndThrow $ _PostNotFoundError # slug
-    Just p -> pure $ p
+  post@Post {..} <- maybe (logAndThrow $ _PostNotFoundError # slug) pure =<< getPostBySlug slug
   pure $ Template pTitle post
 
-createPostHandler :: (MonadLogger m, MonadTime m, MonadPost m, MonadAuth m, CanPostError e m) => Signed PostPayload -> m NoContent
-createPostHandler (Signed sig pp@PostPayload {..}) = withNamespace "createPost" . withContext (object ["title" .= ppTitle]) $ do
-  info "request to create post"
-  authorize sig $ ppTitle <> ppBody
-  validatePostPayload pp
-  createdAt <- now
-  let slug = makeSlug ppTitle createdAt
-  createPost $ Post Nothing slug ppTitle createdAt ppBody
-  pure NoContent
+createPostHandler ::
+  (MonadLogger m, MonadTime m, MonadPost m, MonadAuth m, CanPostError e m) =>
+  Signed PostPayload ->
+  m NoContent
+createPostHandler (Signed sig pp@PostPayload {..}) =
+  withNamespace "createPost" . withContext (object ["title" .= ppTitle]) $ do
+    info "request to create post"
+    authorize sig $ ppTitle <> ppBody
+    validatePostPayload pp
+    createdAt <- now
+    createPost $ Post Nothing (makeSlug ppTitle createdAt) ppTitle createdAt ppBody
+    pure NoContent
 
-editPostHandler :: (MonadLogger m, MonadPost m, MonadAuth m, CanPostError e m) => Int -> Signed PostPayload -> m NoContent
-editPostHandler postId (Signed sig pp@PostPayload {..}) = withNamespace "editPost" . withContext (object ["id" .= postId]) $ do
-  info "request to edit post"
-  authorize sig $ ppTitle <> ppBody
-  validatePostPayload pp
-  postM <- getPostById postId
-  post@Post {..} <- case postM of
-    Nothing -> logAndThrow $ _PostNotFoundError # (show postId :: Text)
-    Just p -> pure p
-  editPost postId $ post {pTitle = ppTitle, pSlug = makeSlug ppTitle pCreatedAt, pBody = ppBody}
-  pure NoContent
+editPostHandler ::
+  (MonadLogger m, MonadPost m, MonadAuth m, CanPostError e m) =>
+  Int ->
+  Signed PostPayload ->
+  m NoContent
+editPostHandler postId (Signed sig pp@PostPayload {..}) =
+  withNamespace "editPost" . withContext (object ["id" .= postId]) $ do
+    info "request to edit post"
+    authorize sig $ ppTitle <> ppBody
+    validatePostPayload pp
+    post@Post {..} <- maybe (logAndThrow $ _PostNotFoundError # show postId) pure =<< getPostById postId
+    editPost postId $ post {pTitle = ppTitle, pSlug = makeSlug ppTitle pCreatedAt, pBody = ppBody}
+    pure NoContent
 
-deletePostHandler :: (MonadLogger m, MonadPost m, MonadAuth m, CanPostError e m) => Int -> Signed Value -> m NoContent
-deletePostHandler postId (Signed sig _) = withNamespace "deletePost" . withContext (object ["id" .= postId]) $ do
-  info "request to delete post"
-  authorize sig postIdText
-  postM <- getPostById postId
-  case postM of
-    Nothing -> logAndThrow $ _PostNotFoundError # postIdText
-    Just _ -> pure ()
-  deletePost postId
-  pure NoContent
-  where
-    postIdText = show postId :: Text
+deletePostHandler ::
+  (MonadLogger m, MonadPost m, MonadAuth m, CanPostError e m) =>
+  Int ->
+  Signed Value ->
+  m NoContent
+deletePostHandler postId (Signed sig _) =
+  withNamespace "deletePost" . withContext (object ["id" .= postId]) $ do
+    info "request to delete post"
+    authorize sig $ show postId
+    _ <- maybe (logAndThrow $ _PostNotFoundError # show postId) pure =<< getPostById postId
+    deletePost postId
+    pure NoContent
