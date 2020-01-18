@@ -17,6 +17,7 @@ import Data.Aeson.Extended
     snakeNoPrefix,
     toJSON,
   )
+import qualified Data.Text as T
 import Lib.Effects.Auth (MonadAuth, Signed (Signed), authorize)
 import Lib.Effects.Logger
   ( MonadLogger,
@@ -70,13 +71,19 @@ validatePostPayload PostPayload {..} =
 getPostsHandler :: (MonadLogger m, MonadPost m) => m (Template [Post])
 getPostsHandler = withNamespace "getPosts" $ do
   info "request for posts"
-  Template "unsafePerformIO" <$> getPosts
+  Template "unsafePerformIO" Nothing <$> getPosts
 
 getPostHandler :: (MonadLogger m, MonadPost m, CanPostError e m) => Text -> m (Template Post)
 getPostHandler slug = withNamespace "getPost" . withContext (object ["slug" .= slug]) $ do
   info "request for post"
   post@Post {..} <- maybe (logAndThrow $ _PostNotFoundError # slug) pure =<< getPostBySlug slug
-  pure $ Template pTitle post
+  pure $ Template pTitle (Just $ description pBody) post
+  where
+    descriptionLen = 300
+    description body =
+      if T.length body > descriptionLen
+        then flip mappend "..." . T.strip . T.dropWhileEnd (/= ' ') $ T.take descriptionLen body
+        else body
 
 createPostHandler ::
   (MonadLogger m, MonadTime m, MonadPost m, MonadAuth m, CanPostError e m) =>

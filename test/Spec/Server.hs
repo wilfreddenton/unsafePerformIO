@@ -176,7 +176,7 @@ serverSpec = before_ resetDb $ do
       runGetPostHandler = runMockApp . getPostHandler
       postError = Left . AppPostError
       authorError = Left . AppAuthorError
-      postSuccess name = Right . Template name
+      postSuccess name desc = Right . Template name desc
       testInvalidTitle = T.replicate 281 "c"
       testTitle = "title"
       testBody = "body"
@@ -203,7 +203,11 @@ serverSpec = before_ resetDb $ do
     it "creates Post" $ do
       runCreatePostHandler testTitle testBody `shouldReturn` Right NoContent
       runGetPostHandler testSlug
-        `shouldReturn` postSuccess testTitle (Post (Just 1) testSlug testTitle testTime testBody)
+        `shouldReturn` postSuccess
+          testTitle
+          (Just testBody)
+          ( Post (Just 1) testSlug testTitle testTime testBody
+          )
   let runEditPostHandler id title body =
         runMockApp . editPostHandler id . Signed "" $ PostPayload title body
       newTestTitle = "new title"
@@ -234,7 +238,11 @@ serverSpec = before_ resetDb $ do
       runCreatePostHandler testTitle testBody `shouldReturn` Right NoContent
       runEditPostHandler 1 newTestTitle newTestBody `shouldReturn` Right NoContent
       runGetPostHandler newTestSlug
-        `shouldReturn` postSuccess newTestTitle (Post (Just 1) newTestSlug newTestTitle testTime newTestBody)
+        `shouldReturn` postSuccess
+          newTestTitle
+          (Just newTestBody)
+          ( Post (Just 1) newTestSlug newTestTitle testTime newTestBody
+          )
   let runDeletePostHandler id = runMockApp . deletePostHandler id $ Signed "" Null
   describe "Delete Post Handler" $ do
     it "returns PostNotFoundError" $
@@ -252,7 +260,7 @@ serverSpec = before_ resetDb $ do
   let runEditAboutHandler about = runMockApp . editAboutHandler $ Signed "" about
       testAbout = About "title" "body"
       newTestAbout = About "newtitle" "newbody"
-      aboutSucces = Right . Template "About"
+      aboutSucces = Right . Template "About" Nothing
   describe "Edit About Handler" $ do
     it "returns AboutValidationError" $
       runEditAboutHandler (About testInvalidTitle "")
@@ -266,9 +274,10 @@ serverSpec = before_ resetDb $ do
     runEditAboutHandler newTestAbout `shouldReturn` Right NoContent
     runGetAboutHandler `shouldReturn` aboutSucces newTestAbout
   let runGetContactHandler = runMockApp getContactHandler
-      newContact l e li f i = Contact (MyLocation l) (Email e) (LinkedIn li) (FacebookMessenger f) (Instagram i)
+      newContact l e li f i =
+        Contact (MyLocation l) (Email e) (LinkedIn li) (FacebookMessenger f) (Instagram i)
       testContact = newContact "location" "email" "linked_in" "facebook_messenger" "instagram"
-      contactSuccess = Right . Template "Contact"
+      contactSuccess = Right . Template "Contact" Nothing
   describe "Get Contact Handler"
     $ it "returns NotFoundError"
     $ runGetContactHandler `shouldReturn` apiError (NotFoundError "contact")

@@ -120,18 +120,21 @@ authSpec = do
   let n = 20
       failure = Left $ AppApiError UnauthorizedError
   describe "Auth" $ do
-    it "does not authorize random signatures and cleartext" . property $ \sig clearText -> do
-      runMockApp (authorize sig clearText) `shouldReturn` failure
+    it "does not authorize random signatures and cleartext" . property $
+      \sig clearText -> do
+        runMockApp (authorize sig clearText) `shouldReturn` failure
     bobCtx <- runIO $ newCtx bobHomedir "C" OpenPGP
-    modifyMaxSuccess (const n) . it "does not authorize signatures created by another key" . property $ \clearText -> do
-      let action = do
-            sig <- makeSignature bobCtx clearText
-            authorize sig clearText
-      runMockApp action `shouldReturn` failure
-    modifyMaxSuccess (const n) . it "does authorize signatures created by the same key" . property $ \clearText -> do
-      let action = do
-            ctx <- view aCtx
-            sig <- makeSignature ctx clearText
-            authorize sig clearText
-            pure NoContent
-      runMockApp action `shouldReturn` Right NoContent
+    modifyMaxSuccess (const n) . it "does not authorize signatures created by another key" . property $
+      \clearText -> do
+        let action = do
+              sig <- makeSignature bobCtx clearText
+              authorize sig clearText
+        runMockApp action `shouldReturn` failure
+    modifyMaxSuccess (const n) . it "does authorize signatures created by the same key" . property $
+      \clearText -> do
+        let action = do
+              ctx <- view aCtx
+              sig <- makeSignature ctx clearText
+              authorize sig clearText
+              pure NoContent
+        runMockApp action `shouldReturn` Right NoContent

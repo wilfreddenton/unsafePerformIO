@@ -59,7 +59,7 @@ validateContact Contact {..} =
 baseHandler :: CanAuthor e m => Text -> m (Maybe a) -> m (Template a)
 baseHandler title action = withNamespace loweredTitle $ do
   info $ "request for " <> title
-  maybe (logAndThrow $ _NotFoundError # loweredTitle) (pure . Template title) =<< action
+  maybe (logAndThrow $ _NotFoundError # loweredTitle) (pure . Template title Nothing) =<< action
   where
     loweredTitle = T.toLower title
 
@@ -91,10 +91,8 @@ editContactHandler (Signed sig contact@Contact {..}) = withNamespace "editContac
     FacebookMessenger fm = cFacebookMessenger
     Instagram i = cInstagram
 
-pgpKeyHandler :: (MonadLogger m, CanAuthEnv a m) => m (Template PgpKey)
-pgpKeyHandler = withNamespace "pgp" $ do
-  info "request for pgp"
-  Template "PGP" <$> view aPgpKey
+pgpKeyHandler :: (CanAuthor e m, CanAuthEnv a m) => m (Template PgpKey)
+pgpKeyHandler = baseHandler "PGP" . fmap Just $ view aPgpKey
 
 authorHandler :: (CanAuthor e m, CanAuthEnv a m, MonadPost m) => m AuthorTemplate
 authorHandler = withNamespace "author" $ do

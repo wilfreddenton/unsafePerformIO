@@ -144,7 +144,7 @@ toHttpError req appErr = ServerError statusCode (show statusMessage) (toBS appEr
     acceptHeaderM = Map.lookup hAccept . Map.fromList $ requestHeaders req
     Status {statusCode, statusMessage} = httpStatus appErr
     jsonTuple = (encode . toJSON, (hContentType, "application/json"))
-    htmlTuple = (renderBS . toHtml . Template "error", (hContentType, "text/html"))
+    htmlTuple = (renderBS . toHtml . Template "error" Nothing, (hContentType, "text/html"))
     (toBS, contentTypeHeader) = case acceptHeaderM of
       Nothing -> jsonTuple
       Just accept -> if B.isInfixOf "application/json" accept then jsonTuple else htmlTuple

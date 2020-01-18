@@ -18,18 +18,20 @@ import Lib.Env (PgpKey (PgpKey))
 import Lucid.Extended
 import Protolude
 
-data Template a = Template Text a deriving (Eq, Show)
+data Template a = Template Text (Maybe Text) a deriving (Eq, Show)
 
 instance ToJSON a => ToJSON (Template a) where
-  toJSON (Template _ a) = toJSON a
+  toJSON (Template _ _ a) = toJSON a
 
 instance ToHtml a => ToHtml (Template a) where
 
   toHtmlRaw = toHtml
 
-  toHtml (Template title a) = doctypehtml_ $ do
+  toHtml (Template title descriptionM a) = doctypehtml_ $ do
     head_ $ do
-      let description = "unsafePerformIO is the blog and personal website of Wilfred Denton."
+      let description = case descriptionM of
+            Nothing -> "unsafePerformIO is the blog and personal website of Wilfred Denton."
+            Just description' -> description'
       title_ $ toHtml title
       meta_ [charset_ "utf-8"]
       meta_ [name_ "description", content_ description]
