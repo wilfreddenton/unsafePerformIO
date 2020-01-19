@@ -92,7 +92,7 @@ instance ToHtml Post where
   toHtml Post {..} = div_ [class_ "post"] $ do
     h1_ $ toHtml pTitle
     p_ [class_ "post-date"] . toHtml $ formatPostTime pCreatedAt
-    toHtml $ renderMarkdown pBody
+    toHtmlRaw $ renderMarkdown pBody
 
 instance ToHtml [Post] where
 
