@@ -37,6 +37,7 @@ dependencies:
 - base16-bytestring
 - bytestring
 - clock
+- cmark
 - containers
 - cryptonite
 - directory
@@ -46,7 +47,6 @@ dependencies:
 - lens
 - lucid
 - memory
-- mmark
 - optparse-applicative
 - protolude
 - servant

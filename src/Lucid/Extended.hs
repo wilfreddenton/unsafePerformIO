@@ -11,18 +11,41 @@ module Lucid.Extended
     colMd4_,
     colMd8_,
     renderMarkdown,
+    extractMetaDescription,
   )
 where
 
+import CMark (Node (..), NodeType (..), commonmarkToHtml, commonmarkToNode)
+import qualified Data.Text as T
 import Lucid hiding (button_, col_)
 import Lucid.Base (makeAttribute)
 import Protolude
-import qualified Text.MMark as MMark
 
-renderMarkdown :: Text -> Text -> Html ()
-renderMarkdown name textToRender = case MMark.parse (show name) textToRender of
-  Left _ -> p_ "invalid markdown" -- should never run
-  Right m -> MMark.render m
+renderMarkdown :: Text -> Text
+renderMarkdown = commonmarkToHtml []
+
+nodeToText :: Node -> Text
+nodeToText (Node _ nodeType children) = case nodeType of
+  DOCUMENT -> foldNodes
+  PARAGRAPH -> foldNodes
+  EMPH -> foldNodes
+  STRONG -> foldNodes
+  LINK _ _ -> foldNodes
+  CODE t -> returnText t
+  TEXT t -> returnText t
+  _ -> ""
+  where
+    returnText t = if t /= "" then (T.strip t <> " ") else ""
+    foldNodes = foldl (<>) "" $ nodeToText <$> children
+
+extractMetaDescription :: Text -> Text
+extractMetaDescription html =
+  if T.length desc > maxLen
+    then (<> "...") . T.strip . T.dropWhileEnd (/= ' ') $ T.take maxLen desc
+    else desc
+  where
+    desc = T.strip . nodeToText $ commonmarkToNode [] html
+    maxLen = 300
 
 property_ :: Text -> Attribute
 property_ = makeAttribute "property"
