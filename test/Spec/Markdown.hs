@@ -22,7 +22,7 @@ markdownSpec = do
       runExtractMetaDescription "foo.\n\nbar." `shouldReturn` "foo. bar."
     it "returns only paragraph text" $
       runExtractMetaDescription
-        "```\naaa\nbbb\n```\n`foo`\n\n* something\n * something1\n\n## header\nbar"
+        "![img](imgur.com)\n```\naaa\nbbb\n```\n`foo`\n\n* something\n * something1\n\n## header\nbar"
         `shouldReturn` "foo bar"
   describe "Meta Description Truncation" $ do
     it "returns without broken word" $
