@@ -15,14 +15,14 @@ module Lucid.Extended
   )
 where
 
-import CMark (Node (..), NodeType (..), commonmarkToHtml, commonmarkToNode)
+import CMark (Node (..), NodeType (..), commonmarkToHtml, commonmarkToNode, optUnsafe)
 import qualified Data.Text as T
 import Lucid hiding (button_, col_)
 import Lucid.Base (makeAttribute)
 import Protolude
 
 renderMarkdown :: Text -> Text
-renderMarkdown = commonmarkToHtml []
+renderMarkdown = commonmarkToHtml [optUnsafe]
 
 nodeToText :: Node -> Text
 nodeToText (Node _ nodeType children) = case nodeType of

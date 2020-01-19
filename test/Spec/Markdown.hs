@@ -1,6 +1,6 @@
 module Spec.Markdown (markdownSpec) where
 
-import Lucid.Extended (extractMetaDescription)
+import Lucid.Extended (extractMetaDescription, renderMarkdown)
 import Protolude
 import Test.Tasty.Hspec (Spec, describe, it, shouldReturn)
 
@@ -27,3 +27,7 @@ markdownSpec = do
   describe "Meta Description Truncation" $ do
     it "returns without broken word" $
       pure (extractMetaDescription 6 "foo bar") `shouldReturn` "foo..."
+  describe "Markdown to HTML" $ do
+    let runRenderMarkdown = pure . renderMarkdown
+    it "returns raw html" $
+      runRenderMarkdown "<video></video>" `shouldReturn` "<p><video></video></p>\n"
