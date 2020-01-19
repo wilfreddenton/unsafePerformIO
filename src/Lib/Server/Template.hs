@@ -104,6 +104,9 @@ instance ToHtml AuthorTemplate where
     body_ $ do
       container_ $ do
         row_ . col_ $ do
+          div_ [style_ "margin-bottom: 1rem"] $ do
+            a_ [href_ "/"] "home"
+        row_ . col_ $ do
           h3_ "PGP Private Key"
           textarea_ [id_ "private-key", type_ "text", name_ "private-key", placeholder_ "PGP Private Key"] ""
           input_ [id_ "passphrase", type_ "password", name_ "passphrase", placeholder_ "Passphrase"]
