@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: feade987249b6967edae2c088344713693f580ef336583d8b6d135e38ab13fbe
+-- hash: e52afc4d82ef28f6db8f40a54353dd3f258cf047940b4b1f9dc118467a471c9b
 
 name:           unsafePerformIO
 version:        1.0.0
@@ -141,6 +141,7 @@ test-suite unsafe-perform-io-test
   main-is: Spec.hs
   other-modules:
       Spec.Auth
+      Spec.Markdown
       Spec.Server
       Paths_unsafePerformIO
   hs-source-dirs:

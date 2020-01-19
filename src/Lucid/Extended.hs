@@ -26,8 +26,9 @@ renderMarkdown = commonmarkToHtml []
 
 nodeToText :: Node -> Text
 nodeToText (Node _ nodeType children) = case nodeType of
-  DOCUMENT -> foldNodes
-  PARAGRAPH -> foldNodes
+  DOCUMENT -> T.strip foldNodes
+  PARAGRAPH -> " " <> foldNodes
+  SOFTBREAK -> " " <> foldNodes
   EMPH -> foldNodes
   STRONG -> foldNodes
   LINK _ _ -> foldNodes
@@ -35,16 +36,16 @@ nodeToText (Node _ nodeType children) = case nodeType of
   TEXT t -> returnText t
   _ -> ""
   where
-    returnText t = if t /= "" then (T.strip t <> " ") else ""
+    returnText t = t
     foldNodes = foldl (<>) "" $ nodeToText <$> children
 
 extractMetaDescription :: Text -> Text
-extractMetaDescription html =
+extractMetaDescription markdown =
   if T.length desc > maxLen
-    then (<> "...") . T.strip . T.dropWhileEnd (/= ' ') $ T.take maxLen desc
+    then (<> "...") . T.dropWhileEnd (/= ' ') $ T.take maxLen desc
     else desc
   where
-    desc = T.strip . nodeToText $ commonmarkToNode [] html
+    desc = nodeToText $ commonmarkToNode [] markdown
     maxLen = 300
 
 property_ :: Text -> Attribute
