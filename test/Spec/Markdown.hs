@@ -7,13 +7,23 @@ import Test.Tasty.Hspec (Spec, describe, it, shouldReturn)
 markdownSpec :: Spec
 markdownSpec = do
   describe "Meta Description Extraction" $ do
+    let runExtractMetaDescription = pure . extractMetaDescription 100
+    it "returns stripped" $
+      runExtractMetaDescription " foo bar " `shouldReturn` "foo bar"
     it "returns without symbols" $
-      pure (extractMetaDescription "foo, *foo*, **foo**, `foo`")
+      runExtractMetaDescription "foo, *foo*, **foo**, `foo`"
         `shouldReturn` "foo, foo, foo, foo"
     it "returns without symbols - nested" $
-      pure (extractMetaDescription "***foo***, *`foo`*, **`foo`**, `*foo*`")
+      runExtractMetaDescription "***foo***, *`foo`*, **`foo`**, `*foo*`"
         `shouldReturn` "foo, foo, foo, *foo*"
     it "returns without newlines - softbreak" $
-      pure (extractMetaDescription "foo\nbar") `shouldReturn` "foo bar"
+      runExtractMetaDescription "foo.\nbar." `shouldReturn` "foo. bar."
     it "returns without newlines - paragraph" $
-      pure (extractMetaDescription "foo\n\nbar") `shouldReturn` "foo bar"
+      runExtractMetaDescription "foo.\n\nbar." `shouldReturn` "foo. bar."
+    it "returns only paragraph text" $
+      runExtractMetaDescription
+        "```\naaa\nbbb\n```\n`foo`\n\n* something\n * something1\n\n## header\nbar"
+        `shouldReturn` "foo bar"
+  describe "Meta Description Truncation" $ do
+    it "returns without broken word" $
+      pure (extractMetaDescription 6 "foo bar") `shouldReturn` "foo..."

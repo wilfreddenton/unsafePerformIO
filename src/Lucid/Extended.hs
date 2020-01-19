@@ -32,21 +32,19 @@ nodeToText (Node _ nodeType children) = case nodeType of
   EMPH -> foldNodes
   STRONG -> foldNodes
   LINK _ _ -> foldNodes
-  CODE t -> returnText t
-  TEXT t -> returnText t
+  CODE t -> t
+  TEXT t -> t
   _ -> ""
   where
-    returnText t = t
-    foldNodes = foldl (<>) "" $ nodeToText <$> children
+    foldNodes = foldMap nodeToText children
 
-extractMetaDescription :: Text -> Text
-extractMetaDescription markdown =
+extractMetaDescription :: Int -> Text -> Text
+extractMetaDescription maxLen markdown =
   if T.length desc > maxLen
-    then (<> "...") . T.dropWhileEnd (/= ' ') $ T.take maxLen desc
+    then (<> "...") . T.strip . T.dropWhileEnd (/= ' ') $ T.take maxLen desc
     else desc
   where
     desc = nodeToText $ commonmarkToNode [] markdown
-    maxLen = 300
 
 property_ :: Text -> Attribute
 property_ = makeAttribute "property"
