@@ -163,7 +163,7 @@ instance ToHtml About where
 
   toHtml About {..} = do
     h3_ $ toHtml aTitle
-    toHtml $ renderMarkdown aBody
+    toHtmlRaw $ renderMarkdown aBody
 
 -- Class
 
