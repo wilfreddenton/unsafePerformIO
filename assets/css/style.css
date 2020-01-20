@@ -64,6 +64,42 @@
   font-stretch: normal;
 }
 
+@font-face {
+	font-family: 'Iosevka Web';
+	font-weight: 400;
+	font-style: normal;
+	src: url('/static/fonts/iosevka-regular.woff2') format('woff2'),
+       url('/static/fonts/iosevka-regular.woff') format('woff'),
+       url('/static/fonts/iosevka-regular.ttf') format('truetype');
+}
+
+@font-face {
+	font-family: 'Iosevka Web';
+	font-weight: 400;
+	font-style: italic;
+	src: url('/static/fonts/iosevka-italic.woff2') format('woff2'),
+       url('/static/fonts/iosevka-italic.woff') format('woff'),
+       url('/static/fonts/iosevka-italic.ttf') format('truetype');
+}
+
+@font-face {
+	font-family: 'Iosevka Web';
+	font-weight: 700;
+	font-style: normal;
+	src: url('/static/fonts/iosevka-bold.woff2') format('woff2'),
+       url('/static/fonts/iosevka-bold.woff') format('woff'),
+       url('/static/fonts/iosevka-bold.ttf') format('truetype');
+}
+
+@font-face {
+	font-family: 'Iosevka Web';
+	font-weight: 700;
+	font-style: italic;
+	src: url('/static/fonts/iosevka-bolditalic.woff2') format('woff2'),
+       url('/static/fonts/iosevka-bolditalic.woff') format('woff'),
+       url('/static/fonts/iosevka-bolditalic.ttf') format('truetype');
+}
+
 * {
   box-sizing: border-box;
 }
@@ -105,7 +141,7 @@ pre code:before {
   content: counter(line);
 }
 code, pre {
-  font-family: 'AT', monospace;
+  font-family: 'Iosevka Web', monospace;
 }
 
 code {
@@ -164,7 +200,7 @@ input, textarea {
 
 textarea {
   display: block;
-  font-family: 'AT', monospace;
+  font-family: 'Iosevka Web', monospace;
   min-height: 100px;
 }
 
@@ -214,12 +250,12 @@ body > .container:first-child {
 
 #view-source {
   float: right;
-  font-family: 'AT', monospace;
+  font-family: 'Iosevka Web', monospace;
   margin-top: -0.4rem;
 }
 
 #monero {
-  font-family: 'AT', monospace;
+  font-family: 'Iosevka Web', monospace;
   font-size: 0.7rem;
 }
 
@@ -243,12 +279,12 @@ li:hover span.inset {
 
 .post-list-date {
   text-alignt: right;
-  font-family: 'AT', monospace;
-  font-size: 0.8rem;
+  font-family: 'Iosevka Web', monospace;
+  font-size: 0.9rem;
 }
 
 .post-date {
-  font-family: 'AT', monospace;
+  font-family: 'Iosevka Web', monospace;
   font-size: 0.9rem;
 }
 
