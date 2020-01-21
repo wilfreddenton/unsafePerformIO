@@ -1,4 +1,5 @@
 function main() {
+  // code
   document.querySelectorAll('pre').forEach(pre => {
     const code = pre.querySelector('code')
     if (code) {
@@ -13,6 +14,9 @@ function main() {
       pre.appendChild(frag)
     }
   })
+
+  // math
+  renderMathInElement(document.body);
 }
 
 if (document.readyState === "loading") {
