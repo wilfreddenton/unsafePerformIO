@@ -184,7 +184,10 @@ ul {
 
 ul li {
   margin: 1rem 0;
-  height: 1.3rem;
+}
+
+ul li h3 {
+  margin: 0;
 }
 
 nav > ul {
@@ -267,7 +270,7 @@ body > .container:first-child {
 
 #monero {
   font-family: 'Iosevka Web', monospace;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
 }
 
 #monero code {
