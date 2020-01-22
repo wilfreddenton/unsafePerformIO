@@ -1,22 +1,12 @@
 function main() {
   // code
-  document.querySelectorAll('pre').forEach(pre => {
-    const code = pre.querySelector('code')
-    if (code) {
-      const frag = document.createDocumentFragment()
-      const lines = code.innerHTML.trim().split('\n')
-      lines.forEach(line => {
-        const el = document.createElement('code')
-        el.innerHTML = line
-        frag.append(el)
-      })
-      pre.removeChild(code)
-      pre.appendChild(frag)
-    }
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightBlock(block)
+    hljs.lineNumbersBlock(block)
   })
 
   // math
-  renderMathInElement(document.body);
+  renderMathInElement(document.body)
 }
 
 if (document.readyState === "loading") {

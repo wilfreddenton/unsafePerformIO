@@ -125,6 +125,7 @@ h2, h3, h4, h5, h6 {
   font-size: 1rem;
   display: block;
   margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 
 hr {
@@ -143,14 +144,23 @@ pre {
 pre code {
   counter-increment: line;
   display: block;
+  background-color: rgb(238, 238, 238) !important
 }
-pre code:before {
-  margin-right: 0.5rem;
-  min-width: 18px;
-  display: inline-block;
-  text-align: left;
-  content: counter(line);
+
+.hljs-ln-numbers {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  text-align: center;
+  color: #999;
+  vertical-align: top;
+  padding-right: 1rem !important;
 }
+
 code, pre {
   font-family: 'Iosevka Web', monospace;
 }

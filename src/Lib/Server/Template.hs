@@ -32,7 +32,7 @@ instance ToHtml a => ToHtml (Template a) where
       let description = case descriptionM of
             Nothing -> "unsafePerformIO is the blog and personal website of Wilfred Denton."
             Just description' -> description'
-          assetVer = "2"
+          assetVer = "3"
       title_ $ toHtml title
       meta_ [charset_ "utf-8"]
       meta_ [name_ "description", content_ description]
@@ -55,8 +55,11 @@ instance ToHtml a => ToHtml (Template a) where
       link_ [rel_ "stylesheet", type_ "text/css", href_ $ "/static/css/style.css?=" <> assetVer]
       link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/css/bootstrap-grid.min.css"]
       link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/katex/katex.min.css"]
+      link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/css/ascetic.css"]
       script_ [src_ "/static/katex/katex.min.js"] ("" :: Text)
       script_ [src_ "/static/katex/auto-render.min.js"] ("" :: Text)
+      script_ [src_ "/static/js/highlight.pack.js"] ("" :: Text)
+      script_ [src_ "/static/js/highlightjs-line-numbers.min.js"] ("" :: Text)
       script_ [src_ $ "/static/js/script.js?=" <> assetVer, async_ "true"] ("" :: Text)
       script_ [src_ "https://www.googletagmanager.com/gtag/js?id=UA-131857401-1", async_ "true"] ("" :: Text)
       script_ "window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'UA-131857401-1');"
