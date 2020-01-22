@@ -113,6 +113,8 @@ body {
   position: relative;
   min-height: 100vh;
   margin: 0;
+  color: black;
+  background-color: white;
 }
 
 h1 {
@@ -121,7 +123,16 @@ h1 {
 
 h2, h3, h4, h5, h6 {
   font-size: 1rem;
-  display: inline;
+  display: block;
+  margin-top: 2rem;
+}
+
+hr {
+  margin-top: 2rem;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  border-bottom: 1px solid black;
 }
 
 pre {
