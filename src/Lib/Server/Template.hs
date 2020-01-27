@@ -32,7 +32,7 @@ instance ToHtml a => ToHtml (Template a) where
       let description = case descriptionM of
             Nothing -> "unsafePerformIO is the blog and personal website of Wilfred Denton."
             Just description' -> description'
-          assetVer = "3"
+          assetVer = "5"
       title_ $ toHtml title
       meta_ [charset_ "utf-8"]
       meta_ [name_ "description", content_ description]

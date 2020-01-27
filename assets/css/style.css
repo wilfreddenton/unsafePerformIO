@@ -147,6 +147,11 @@ pre code {
   background-color: rgb(238, 238, 238) !important
 }
 
+p code {
+  background-color: rgb(238,238,238);
+  padding: 0 0.15rem;
+}
+
 .hljs-ln-numbers {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -262,6 +267,10 @@ body > .container:first-child {
 
 .content p {
   line-height: 1.6;
+}
+
+.content h2 {
+  font-size: 1.2rem;
 }
 
 #footer-container {
