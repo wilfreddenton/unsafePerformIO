@@ -5,6 +5,7 @@
 
 module Lib.Effects.Post where
 
+import CMark.Extended (linkifyHeaders, slugify)
 import Control.Lens (view)
 import Data.Aeson.Extended
   ( ToJSON,
@@ -12,7 +13,6 @@ import Data.Aeson.Extended
     snakeNoPrefix,
     toJSON,
   )
-import Data.Char (isAlphaNum)
 import Data.Map.Strict as Map
 import Data.Map.Strict (Map)
 import qualified Data.Text as T
@@ -92,7 +92,7 @@ instance ToHtml Post where
   toHtml Post {..} = div_ [class_ "post"] $ do
     h1_ $ toHtml pTitle
     p_ [class_ "post-date"] . toHtml $ formatPostTime pCreatedAt
-    toHtmlRaw $ renderMarkdown pBody
+    toHtmlRaw . renderMarkdown $ linkifyHeaders pBody
 
 instance ToHtml [Post] where
 
@@ -112,10 +112,8 @@ instance ToHtml [Post] where
               span_ . toHtml $ formatPostTime pCreatedAt
 
 makeSlug :: Text -> UTCTime -> Text
-makeSlug title createdAt = T.pack createdAtStr <> "-" <> modifiedTitle
+makeSlug title createdAt = T.pack createdAtStr <> "-" <> slugify title
   where
-    replaceInvalidChar c = if isAlphaNum c then c else ' '
-    modifiedTitle = T.intercalate "-" . T.words . T.toLower $ T.map replaceInvalidChar title
     createdAtStr = formatTime defaultTimeLocale "%_Y-%m-%d" createdAt
 
 -- Typeclass

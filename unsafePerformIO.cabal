@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e52afc4d82ef28f6db8f40a54353dd3f258cf047940b4b1f9dc118467a471c9b
+-- hash: 740ba7ea6fa8a0578ba99b231ad3bb02cdcb5a7563f244769a30be5b52868253
 
 name:           unsafePerformIO
 version:        1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      CMark.Extended
       Data.Aeson.Extended
       Lib
       Lib.App
@@ -46,6 +47,7 @@ library
       Lib.Server.Posts
       Lib.Server.Template
       Lucid.Extended
+      Text.Regex.PCRE.Heavy.Extended
   other-modules:
       Paths_unsafePerformIO
   hs-source-dirs:
@@ -72,6 +74,8 @@ library
     , lucid
     , memory
     , optparse-applicative
+    , pcre-heavy
+    , pcre-light
     , protolude
     , quickcheck-instances
     , servant
@@ -118,6 +122,8 @@ executable unsafe-perform-io
     , lucid
     , memory
     , optparse-applicative
+    , pcre-heavy
+    , pcre-light
     , protolude
     , quickcheck-instances
     , servant
@@ -168,6 +174,8 @@ test-suite unsafe-perform-io-test
     , lucid
     , memory
     , optparse-applicative
+    , pcre-heavy
+    , pcre-light
     , protolude
     , quickcheck-instances
     , servant

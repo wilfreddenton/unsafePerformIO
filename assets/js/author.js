@@ -1,3 +1,7 @@
+function trimLines(s) {
+  return s.split('\n').map(l => l.trim()).join('\n')
+}
+
 async function main() {
   const openpgp = window.openpgp
   openpgp.initWorker({path: '/static/js/openpgp.worker.min.js'})
@@ -88,13 +92,13 @@ function run(openpgp, publicKey) {
   const formHandlers = {
     'post': async form => {
       const title = form.title.value.trim()
-      const body = form.body.value.trim()
+      const body = trimLines(form.body.value)
       await signAndSend('/posts', title + body, {'title': title, 'body': body})
     },
     'editpost': async form => {
       const id = form.postId.value.trim()
       const title = form.title.value.trim()
-      const body = form.body.value.trim()
+      const body = trimLines(form.body.value)
       await signAndSend(`/posts/${id}`, title + body, {'title': title, 'body': body}, 'PUT')
     },
     'deletepost': async form => {
@@ -106,7 +110,7 @@ function run(openpgp, publicKey) {
     },
     'about': async form => {
       const title = form.title.value.trim()
-      const body = form.body.value.trim()
+      const body = trimLines(form.body.value)
       await signAndSend('/about', title + body, {'title': title, 'body': body})
     },
     'contact': async form => {

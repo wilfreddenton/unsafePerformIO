@@ -1,6 +1,6 @@
 module Spec.Markdown (markdownSpec) where
 
-import Lucid.Extended (extractMetaDescription, renderMarkdown)
+import CMark.Extended (extractMetaDescription, linkifyHeaders, renderMarkdown)
 import Protolude
 import Test.Tasty.Hspec (Spec, describe, it, shouldReturn)
 
@@ -31,3 +31,19 @@ markdownSpec = do
     let runRenderMarkdown = pure . renderMarkdown
     it "returns raw html" $
       runRenderMarkdown "<video></video>" `shouldReturn` "<p><video></video></p>\n"
+  describe "Linkify Headers" $ do
+    let runLinkifyHeaders = pure . linkifyHeaders
+    it "returns unmodified" $
+      runLinkifyHeaders "# Foo" `shouldReturn` "# Foo"
+    it "returns modified" $
+      runLinkifyHeaders "## Foo"
+        `shouldReturn` "## <a class=\"h-anchor\" id=\"foo\" href=\"#foo\">#</a>Foo"
+    it "returns modified" $
+      runLinkifyHeaders "### Foo"
+        `shouldReturn` "### <a class=\"h-anchor\" id=\"foo\" href=\"#foo\">#</a>Foo"
+    it "returns modified" $
+      runLinkifyHeaders "## [Foo]"
+        `shouldReturn` "## <a class=\"h-anchor\" id=\"foo\" href=\"#foo\">#</a>[Foo]"
+    it "returns modified" $
+      runLinkifyHeaders "## [Foo](https://foo.com)"
+        `shouldReturn` "## <a class=\"h-anchor\" id=\"foo\" href=\"#foo\">#</a>[Foo](https://foo.com)"

@@ -122,10 +122,18 @@ h1 {
 }
 
 h2, h3, h4, h5, h6 {
+  position: relative;
   font-size: 1rem;
   display: block;
   margin-top: 2rem;
   margin-bottom: 1rem;
+}
+
+.h-anchor {
+  position: absolute;
+  left: -1rem;
+  color: #999;
+  text-decoration: none;
 }
 
 hr {
@@ -253,6 +261,7 @@ a.post-link:hover {
 
 video {
   max-width: 100%;
+  display: block;
 }
 
 #title {
