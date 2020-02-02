@@ -7,6 +7,15 @@ function main() {
 
   // math
   renderMathInElement(document.body)
+
+  // videos
+  document.querySelectorAll('video').forEach(v => {
+    v.addEventListener('pause', () => {
+      if (v.autoplay) {
+        v.play()
+      }
+    })
+  })
 }
 
 if (document.readyState === "loading") {

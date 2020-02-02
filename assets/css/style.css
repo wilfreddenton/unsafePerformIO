@@ -251,6 +251,10 @@ a.post-link:hover {
   color: black;
 }
 
+video {
+  max-width: 100%;
+}
+
 #title {
   font-style: italic;
   font-size: 1.6rem;
@@ -258,7 +262,7 @@ a.post-link:hover {
 
 body > .container:first-child {
   padding-top: 3rem;
-  padding-bottom: 12rem;
+  padding-bottom: 24rem;
 }
 
 .content {
@@ -293,6 +297,7 @@ body > .container:first-child {
 }
 
 #monero code {
+  background-color: white;
   overflow-wrap: break-word;
   white-space: normal;
 }
