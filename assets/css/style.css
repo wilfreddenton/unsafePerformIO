@@ -65,7 +65,7 @@
 }
 
 @font-face {
-	font-family: 'Iosevka Web';
+	font-family: 'Iosevka';
 	font-weight: 400;
 	font-style: normal;
 	src: url('/static/fonts/iosevka-regular.woff2') format('woff2'),
@@ -74,7 +74,7 @@
 }
 
 @font-face {
-	font-family: 'Iosevka Web';
+	font-family: 'Iosevka';
 	font-weight: 400;
 	font-style: italic;
 	src: url('/static/fonts/iosevka-italic.woff2') format('woff2'),
@@ -83,7 +83,7 @@
 }
 
 @font-face {
-	font-family: 'Iosevka Web';
+	font-family: 'Iosevka';
 	font-weight: 700;
 	font-style: normal;
 	src: url('/static/fonts/iosevka-bold.woff2') format('woff2'),
@@ -92,7 +92,7 @@
 }
 
 @font-face {
-	font-family: 'Iosevka Web';
+	font-family: 'Iosevka';
 	font-weight: 700;
 	font-style: italic;
 	src: url('/static/fonts/iosevka-bolditalic.woff2') format('woff2'),
@@ -150,7 +150,6 @@ pre {
 }
 
 pre code {
-  counter-increment: line;
   display: block;
   background-color: rgb(238, 238, 238) !important
 }
@@ -160,22 +159,8 @@ p code {
   padding: 0 0.15rem;
 }
 
-.hljs-ln-numbers {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-
-  text-align: center;
-  color: #999;
-  vertical-align: top;
-  padding-right: 1rem !important;
-}
-
 code, pre {
-  font-family: 'Iosevka Web', monospace;
+  font-family: 'Iosevka', monospace;
 }
 
 code {
@@ -237,7 +222,7 @@ input, textarea {
 
 textarea {
   display: block;
-  font-family: 'Iosevka Web', monospace;
+  font-family: 'Iosevka', monospace;
   min-height: 100px;
 }
 
@@ -296,12 +281,12 @@ body > .container:first-child {
 
 #view-source {
   float: right;
-  font-family: 'Iosevka Web', monospace;
+  font-family: 'Iosevka', monospace;
   margin-top: -0.4rem;
 }
 
 #monero {
-  font-family: 'Iosevka Web', monospace;
+  font-family: 'Iosevka', monospace;
   font-size: 0.8rem;
 }
 
@@ -326,12 +311,12 @@ li:hover span.inset {
 
 .post-list-date {
   text-alignt: right;
-  font-family: 'Iosevka Web', monospace;
+  font-family: 'Iosevka', monospace;
   font-size: 0.9rem;
 }
 
 .post-date {
-  font-family: 'Iosevka Web', monospace;
+  font-family: 'Iosevka', monospace;
   font-size: 0.9rem;
 }
 
@@ -353,7 +338,7 @@ li:hover span.inset {
 @media (max-width: 768px) {
   body > .container:first-child {
     padding-top: 1rem;
-    padding-bottom: 10rem;
+    padding-bottom: 18rem;
   }
 
   .content {

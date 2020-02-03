@@ -1,5 +1,5 @@
 function trimLines(s) {
-  return s.split('\n').map(l => l.trim()).join('\n')
+  return s.split('\n').map(l => l.trimEnd()).join('\n')
 }
 
 async function main() {

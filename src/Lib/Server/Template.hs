@@ -32,7 +32,7 @@ instance ToHtml a => ToHtml (Template a) where
       let description = case descriptionM of
             Nothing -> "unsafePerformIO is the blog and personal website of Wilfred Denton."
             Just description' -> description'
-          assetVer = "7"
+          assetVer = "10"
       title_ $ toHtml title
       meta_ [charset_ "utf-8"]
       meta_ [name_ "description", content_ description]
@@ -59,8 +59,7 @@ instance ToHtml a => ToHtml (Template a) where
       script_ [src_ "/static/katex/katex.min.js"] ("" :: Text)
       script_ [src_ "/static/katex/auto-render.min.js"] ("" :: Text)
       script_ [src_ "/static/js/highlight.pack.js"] ("" :: Text)
-      script_ [src_ "/static/js/highlightjs-line-numbers.min.js"] ("" :: Text)
-      script_ [src_ $ "/static/js/script.js?=" <> assetVer, async_ "true"] ("" :: Text)
+      script_ [src_ $ "/static/js/script.js?=" <> assetVer] ("" :: Text)
       script_ [src_ "https://www.googletagmanager.com/gtag/js?id=UA-131857401-1", async_ "true"] ("" :: Text)
       script_ "window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'UA-131857401-1');"
     body_ $ do
@@ -87,7 +86,7 @@ instance ToHtml a => ToHtml (Template a) where
             img_
               [ alt_ "Creative Commons License",
                 style_ "border-width:0",
-                src_ "https://i.creativecommons.org/l/by-sa/3.0/us/80x15.png"
+                src_ "/static/img/cc.png"
               ]
           button_ [id_ "view-source", href_ "https://github.com/wilfreddenton/unsafePerformIO", target_ "_blank"] "</>"
 

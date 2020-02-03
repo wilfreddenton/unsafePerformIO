@@ -2,14 +2,13 @@ function main() {
   // code
   document.querySelectorAll('pre code').forEach(block => {
     hljs.highlightBlock(block)
-    hljs.lineNumbersBlock(block)
   })
 
   // math
   renderMathInElement(document.body)
 
   // videos
-  document.querySelectorAll('video').forEach(v => {
+  document.querySelectorAll('video').forEach(async v => {
     v.addEventListener('pause', () => {
       if (v.autoplay) {
         v.play()
