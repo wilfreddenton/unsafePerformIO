@@ -5,7 +5,7 @@
 
 module Lib.Effects.Post where
 
-import CMark.Extended (linkifyHeaders, slugify)
+import CMark.Extended (linkifyHeaders, reifyFootnotes, slugify)
 import Control.Lens (view)
 import Data.Aeson.Extended
   ( ToJSON,
@@ -92,7 +92,7 @@ instance ToHtml Post where
   toHtml Post {..} = div_ [class_ "post"] $ do
     h1_ $ toHtml pTitle
     p_ [class_ "post-date"] . toHtml $ formatPostTime pCreatedAt
-    toHtmlRaw . renderMarkdown $ linkifyHeaders pBody
+    toHtmlRaw . renderMarkdown . reifyFootnotes $ linkifyHeaders pBody
 
 instance ToHtml [Post] where
 

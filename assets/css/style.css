@@ -330,6 +330,10 @@ li:hover span.inset {
   display: none;
 }
 
+.rfn {
+  text-decoration: none;
+}
+
 
 @media (max-width: 1200px) {}
 
