@@ -98,7 +98,7 @@ reifyFootnotes body =
         href i = "href=\"#fnr-" <> show i <> "\""
     referenceS _ = ""
     footnoteS :: Text -> Text
-    footnoteS _ = "\n\n"
+    footnoteS _ = ""
 
 renderMarkdown :: Text -> Text
 renderMarkdown = commonmarkToHtml [optUnsafe]

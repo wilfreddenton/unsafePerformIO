@@ -1,6 +1,6 @@
 module Spec.Markdown (markdownSpec) where
 
-import CMark.Extended (extractMetaDescription, linkifyHeaders, renderMarkdown)
+import CMark.Extended (extractMetaDescription, linkifyHeaders, reifyFootnotes, renderMarkdown)
 import Protolude
 import Test.Tasty.Hspec (Spec, describe, it, shouldReturn)
 
@@ -47,3 +47,25 @@ markdownSpec = do
     it "returns modified" $
       runLinkifyHeaders "## [Foo](https://foo.com)"
         `shouldReturn` "## <a class=\"h-anchor\" id=\"foo\" href=\"#foo\">#</a>[Foo](https://foo.com)"
+  describe "Reify Footnotes" $ do
+    let runReifyFootnotes = pure . reifyFootnotes
+    it "returns unmodified" $
+      runReifyFootnotes "" `shouldReturn` ""
+    it "returns unmodified" $
+      runReifyFootnotes "foo" `shouldReturn` "foo"
+    it "returns unmodified" $
+      runReifyFootnotes "foo\n\n" `shouldReturn` "foo\n\n"
+    it "returns with empty footnote block" $
+      -- must be prefixed with \n\n (block)
+      -- without references generated footnote block is empty
+      runReifyFootnotes "[^foo]: hey\n\n[^bar]: you"
+        `shouldReturn` "[^foo]: hey\n\n---\n\n<ol></ol>"
+    it "returns with empty footnote block" $
+      runReifyFootnotes "\n\n[^foo]: hey\n\n[^bar]: you"
+        `shouldReturn` "\n\n---\n\n<ol></ol>"
+    it "returns with correct footnote block" $
+      runReifyFootnotes "foo.[^foo]\n\nbar.[^bar]\n\n[^foo]: hey\n\n[^bar]: you"
+        `shouldReturn` "foo.<sup><a id=\"fn-1\" href=\"#fnr-1\">1</a></sup>\n\nbar.<sup><a id=\"fn-2\" href=\"#fnr-2\">2</a></sup>\n\n---\n\n<ol><li id=\"fnr-1\"><p>hey <a class=\"rfn\" href=\"#fn-1\">\8617</a></p>\n</li>\n<li id=\"fnr-2\"><p>you <a class=\"rfn\" href=\"#fn-2\">\8617</a></p>\n</li>\n</ol>"
+    it "returns with correct footnote block" $
+      runReifyFootnotes "foo.[^foo]\n\n[^foo]: hey\n\n[^bar]: you\n\nbar.[^bar]\n\n"
+        `shouldReturn` "foo.<sup><a id=\"fn-1\" href=\"#fnr-1\">1</a></sup>\n\nbar.<sup><a id=\"fn-2\" href=\"#fnr-2\">2</a></sup>\n\n---\n\n<ol><li id=\"fnr-1\"><p>hey <a class=\"rfn\" href=\"#fn-1\">\8617</a></p>\n</li>\n<li id=\"fnr-2\"><p>you <a class=\"rfn\" href=\"#fn-2\">\8617</a></p>\n</li>\n</ol>"
