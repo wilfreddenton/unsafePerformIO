@@ -131,7 +131,7 @@ h2, h3, h4, h5, h6 {
 
 .h-anchor {
   position: absolute;
-  left: -1rem;
+  left: -1.1rem;
   color: #999;
   text-decoration: none;
 }
@@ -252,6 +252,11 @@ video {
 #title {
   font-style: italic;
   font-size: 1.6rem;
+}
+
+.container {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
 
 body > .container:first-child {

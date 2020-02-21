@@ -32,7 +32,7 @@ instance ToHtml a => ToHtml (Template a) where
       let description = case descriptionM of
             Nothing -> "unsafePerformIO is the blog and personal website of Wilfred Denton."
             Just description' -> description'
-          assetVer = "12"
+          assetVer = "13"
       title_ $ toHtml title
       meta_ [charset_ "utf-8"]
       meta_ [name_ "description", content_ description]
@@ -52,10 +52,10 @@ instance ToHtml a => ToHtml (Template a) where
       meta_ [name_ "twitter:image", content_ "https://unsafe-perform.io/static/img/favicon.png"]
       meta_ [name_ "twitter:card", content_ "summary"]
       link_ [rel_ "icon", type_ "image/png", href_ "/static/img/favicon.png"]
-      link_ [rel_ "stylesheet", type_ "text/css", href_ $ "/static/css/style.css?=" <> assetVer]
       link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/css/bootstrap-grid.min.css"]
       link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/katex/katex.min.css"]
       link_ [rel_ "stylesheet", type_ "text/css", href_ "/static/css/ascetic.css"]
+      link_ [rel_ "stylesheet", type_ "text/css", href_ $ "/static/css/style.css?=" <> assetVer]
       script_ [src_ "/static/katex/katex.min.js"] ("" :: Text)
       script_ [src_ "/static/katex/auto-render.min.js"] ("" :: Text)
       script_ [src_ "/static/js/highlight.pack.js"] ("" :: Text)
